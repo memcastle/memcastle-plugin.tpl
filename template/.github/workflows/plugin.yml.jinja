@@ -28,6 +28,12 @@ jobs:
           targets: wasm32-wasip2
       - name: Build and package {{ plugin_id }}
         run: python3 scripts/package.py
+      - name: Check packaged manifest matches its reviewed source
+        run: |
+          git diff --exit-code -- plugin.toml || {
+            echo "::error::commit the plugin.toml artifact digests produced by packaging"
+            exit 1
+          }
       - name: Keep source dependency versions reproducible
         run: |
           for manifest in modules/*/memcastle-source.toml; do

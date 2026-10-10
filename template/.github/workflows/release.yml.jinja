@@ -18,6 +18,12 @@ jobs:
           targets: wasm32-wasip2
       - name: Build and package this provider only
         run: python3 scripts/package.py
+      - name: Refuse artifacts with unreviewed manifest changes
+        run: |
+          git diff --exit-code -- plugin.toml || {
+            echo "::error::commit the plugin.toml artifact digests before publishing"
+            exit 1
+          }
       - name: Publish this provider's release
         env:
           GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
