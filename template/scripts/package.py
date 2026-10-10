@@ -18,12 +18,11 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "plugin.toml"
 MAX_FILES = 1024
 MAX_SIZE = 256 * 1024 * 1024
-ZERO = "0" * 64
 
 
 def safe_file(name: str) -> Path:
     parts = Path(name).parts
-    if not parts or any(part in ("", ".", "..") for part in parts) or Path(name).is_absolute():
+    if not parts or "\\" in name or any(part in ("", ".", "..") for part in parts) or Path(name).is_absolute():
         raise ValueError(f"unsafe module path {name!r}")
     path = ROOT
     for part in parts:
@@ -99,8 +98,8 @@ def main() -> None:
         section = sections[index]
         for key, path in (("manifest_sha256", module["manifest"]), ("sha256", module["entry"])):
             before = f'{key} = "{module[key]}"'
-            if section.count(before) != 1 or (module[key] != ZERO and module[key] != hashlib.sha256(files[path]).hexdigest()):
-                raise ValueError(f"module {name!r} has an invalid or stale {key}")
+            if section.count(before) != 1:
+                raise ValueError(f"module {name!r} has an ambiguous {key}")
             section = section.replace(before, f'{key} = "{hashlib.sha256(files[path]).hexdigest()}"', 1)
         sections[index] = section
     text = "\n[[modules]]".join(sections)
@@ -114,10 +113,15 @@ def main() -> None:
 
 def safe_parent(name: str) -> Path:
     """The sole file the build writes: source.wasm in the module's own directory."""
-    path = ROOT / name
-    if path.name != "source.wasm" or path.parent.is_symlink() or not path.parent.is_dir():
+    parts = Path(name).parts
+    if len(parts) != 3 or parts[0] != "modules" or parts[2] != "source.wasm":
         raise ValueError(f"unsafe source component destination {name!r}")
-    return path
+    parent = ROOT
+    for part in parts[:-1]:
+        parent = parent / part
+        if parent.is_symlink() or not parent.is_dir():
+            raise ValueError(f"unsafe source component destination {name!r}")
+    return parent / "source.wasm"
 
 
 if __name__ == "__main__":
