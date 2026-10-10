@@ -1,0 +1,74 @@
+name = "memcastle-plugin"
+description = "A versioned provider plugin composed from pinned module templates"
+strict = true
+
+[questions.plugin_id]
+type = "string"
+prompt = "Stable plugin ID"
+pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"
+message = "use lowercase words, numbers and hyphens"
+
+[questions.description]
+type = "string"
+prompt = "Plugin description"
+default = "A MemCastle provider plugin"
+
+[questions.provider]
+type = "string"
+prompt = "Provider family"
+default = "{{ plugin_id }}"
+
+[questions.version]
+type = "string"
+prompt = "Plugin version"
+default = "0.1.0"
+
+[questions.memcastle]
+type = "string"
+prompt = "Supported MemCastle versions"
+default = ">=0.4, <0.6"
+
+[questions.github_owner]
+type = "string"
+prompt = "Repository owner"
+default = "memcastle"
+
+[questions.repository_name]
+type = "string"
+prompt = "Repository name"
+default = "memcastle-{{ plugin_id }}"
+
+[questions.sources]
+type = "string"
+prompt = "Source module IDs (comma-separated, empty for none)"
+default = ""
+pattern = "^$|^[a-z0-9]+(-[a-z0-9]+)*(,[a-z0-9]+(-[a-z0-9]+)*)*$"
+message = "list unique lowercase hyphenated IDs, comma-separated, or leave empty"
+
+[questions.integrations]
+type = "string"
+prompt = "Integration module IDs (comma-separated, empty for none)"
+default = ""
+pattern = "^$|^[a-z0-9]+(-[a-z0-9]+)*(,[a-z0-9]+(-[a-z0-9]+)*)*$"
+message = "list unique lowercase hyphenated IDs, comma-separated, or leave empty"
+
+# Local paths are for template tests and offline authoring; production defaults are pinned remote repositories.
+[questions.source_template]
+type = "string"
+prompt = "Source module template repository"
+default = "https://github.com/memcastle/memcastle-source.tpl"
+
+[questions.integration_template]
+type = "string"
+prompt = "Integration module template repository"
+default = "https://github.com/memcastle/memcastle-integration.tpl"
+
+[[compose]]
+source = "{{ source_template }}"
+rev = "46907315af81f09599b6b92f109087e38c692636"
+from = "sources"
+
+[[compose]]
+source = "{{ integration_template }}"
+rev = "4186131dd849d7a53ad5a7b4c5fa035d134b7e8e"
+from = "integrations"

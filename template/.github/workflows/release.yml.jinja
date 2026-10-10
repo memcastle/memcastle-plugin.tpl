@@ -1,0 +1,24 @@
+name: Publish {{ plugin_id }}
+
+on:
+  push:
+    tags:
+      - '{{ plugin_id }}/v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip2
+      - name: Build and package this provider only
+        run: python3 scripts/package.py
+      - name: Publish this provider's release
+        env:
+          GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
+        run: gh release create "$GITHUB_REF_NAME" dist/*.tar.gz --generate-notes

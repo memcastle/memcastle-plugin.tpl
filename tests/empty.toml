@@ -1,0 +1,6 @@
+[answers]
+plugin_id = "empty"
+
+[expect]
+files = ["plugin.toml", "README.md", "scripts/package.py", ".github/workflows/plugin.yml", ".github/workflows/release.yml"]
+absent = ["modules/one/memcastle-source.toml"]
