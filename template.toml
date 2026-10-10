@@ -65,7 +65,7 @@ default = "https://github.com/memcastle/memcastle-integration.tpl"
 
 [[compose]]
 source = "{{ source_template }}"
-rev = "46907315af81f09599b6b92f109087e38c692636"
+rev = "8922c83451c5cce430098f2a4955705e58214cac"
 from = "sources"
 
 [[compose]]
