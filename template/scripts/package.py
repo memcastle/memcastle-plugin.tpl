@@ -78,11 +78,18 @@ def main() -> None:
         name, kind = module["id"], module["type"]
         module_dir = ROOT / "modules" / name
         if kind == "source":
-            subprocess.run(["cargo", "build", "--release", "--target", "wasm32-wasip2"], cwd=module_dir, check=True)
+            if not (module_dir / "Cargo.lock").is_file():
+                subprocess.run(["cargo", "generate-lockfile"], cwd=module_dir, check=True)
+            subprocess.run(["cargo", "build", "--locked", "--release", "--target", "wasm32-wasip2"], cwd=module_dir, check=True)
             built = module_dir / "target/wasm32-wasip2/release" / f"{name.replace('-', '_')}.wasm"
             if not built.is_file():
                 raise ValueError(f"source {name!r} built no component at {built}")
             shutil.copyfile(built, safe_parent(module["entry"]))
+            # The conformance runner uses each module's own `dist/source.wasm`; this is build output,
+            # not another copy inside the plugin archive.
+            test_component = module_dir / "dist/source.wasm"
+            test_component.parent.mkdir(exist_ok=True)
+            shutil.copyfile(built, test_component)
         elif kind == "integration":
             with safe_file(module["manifest"]).open("rb") as source:
                 integration = tomllib.load(source)

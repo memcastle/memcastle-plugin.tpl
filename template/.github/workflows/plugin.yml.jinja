@@ -28,5 +28,29 @@ jobs:
           targets: wasm32-wasip2
       - name: Build and package {{ plugin_id }}
         run: python3 scripts/package.py
+      - name: Keep source dependency versions reproducible
+        run: |
+          for manifest in modules/*/memcastle-source.toml; do
+            if [[ -f "$manifest" ]]; then
+              lock="$(dirname "$manifest")/Cargo.lock"
+              git ls-files --error-unmatch "$lock" >/dev/null || {
+                echo "::error::commit $lock after packaging so release dependencies stay pinned"
+                exit 1
+              }
+            fi
+          done
+      - name: Download a released Core for source conformance
+        env:
+          GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
+        run: gh release download --repo memcastle/memcastle --pattern 'memcastle_*_linux-amd64' --dir "$RUNNER_TEMP"
+      - name: Exercise each source with the Core host
+        run: |
+          binary=("$RUNNER_TEMP"/memcastle_*_linux-amd64)
+          chmod +x "${binary[0]}"
+          for manifest in modules/*/memcastle-source.toml; do
+            if [[ -f "$manifest" ]]; then
+              "${binary[0]}" source test "$(dirname "$manifest")" --no-build
+            fi
+          done
       - name: Validate plugin metadata
         run: python3 -m unittest discover -s tests
