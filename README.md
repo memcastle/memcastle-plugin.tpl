@@ -22,5 +22,6 @@ To add a module later, edit the recorded `sources` or `integrations` array in `.
 When a child branch moves, `update` records its new commit and merges any module skeleton changes normally.
 
 `python3 scripts/package.py` builds sources, computes every module artifact hash and produces a deterministic release archive.
+It remaps local Rust and Cargo source paths and ignores a local compiler wrapper so the reviewed component hashes match CI.
 Commit each generated source module's `Cargo.lock` after packaging; the provider CI requires them for reproducible builds.
 The resulting archive is the installation unit; neither source modules nor integration modules are separately fetched from the plugin registry.

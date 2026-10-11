@@ -8,6 +8,7 @@ The only archive entries are the root manifest and its declared module artifacts
 import gzip
 import hashlib
 import io
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -80,7 +81,20 @@ def main() -> None:
         if kind == "source":
             if not (module_dir / "Cargo.lock").is_file():
                 subprocess.run(["cargo", "generate-lockfile"], cwd=module_dir, check=True)
-            subprocess.run(["cargo", "build", "--locked", "--release", "--target", "wasm32-wasip2"], cwd=module_dir, check=True)
+            cargo_home = Path(os.environ.get("CARGO_HOME", Path.home() / ".cargo")).resolve()
+            sysroot = Path(subprocess.check_output(["rustc", "--print", "sysroot"], text=True).strip())
+            version = subprocess.check_output(["rustc", "--version", "--verbose"], text=True)
+            commit = next(line.removeprefix("commit-hash: ") for line in version.splitlines() if line.startswith("commit-hash: "))
+            build_env = os.environ.copy()
+            # A local compiler wrapper and the runner's different Cargo home otherwise embed different paths in WASM.
+            build_env["CARGO_BUILD_RUSTC_WRAPPER"] = ""
+            build_env.pop("RUSTFLAGS", None)
+            build_env["CARGO_ENCODED_RUSTFLAGS"] = "\x1f".join((
+                f"--remap-path-prefix={cargo_home}=/cargo",
+                f"--remap-path-prefix={sysroot / 'lib/rustlib/src/rust'}=/rustc/{commit}",
+                f"--remap-path-prefix={module_dir}=/module",
+            ))
+            subprocess.run(["cargo", "build", "--locked", "--release", "--target", "wasm32-wasip2"], cwd=module_dir, env=build_env, check=True)
             built = module_dir / "target/wasm32-wasip2/release" / f"{name.replace('-', '_')}.wasm"
             if not built.is_file():
                 raise ValueError(f"source {name!r} built no component at {built}")
