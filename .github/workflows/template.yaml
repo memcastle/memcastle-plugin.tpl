@@ -15,10 +15,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: memcastle/memcastle-source.tpl
+          ref: 5f2a8350bd82c49ec2370d70c83019ff6fc5a822
           path: memcastle-source.tpl
       - uses: actions/checkout@v4
         with:
           repository: memcastle/memcastle-integration.tpl
+          ref: 04cc8455f056485cb08298a4a0af82909d314fe9
           path: memcastle-integration.tpl
       - uses: dtolnay/rust-toolchain@stable
         with:

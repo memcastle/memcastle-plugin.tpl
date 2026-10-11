@@ -32,6 +32,10 @@ def main() -> None:
     version = run(GIT_TPL, "--version", cwd=PARENT, env=os.environ.copy()).split()[-1]
     if tuple(map(int, version.split(".")[:2])) < (0, 14):
         raise RuntimeError(f"GitTPL 0.14 or newer is required, found {version}")
+    pins = {item["from"]: item["ref"] for item in tomllib.loads((PARENT / "template.toml").read_text())["compose"]}
+    for name, repo in (("sources", SOURCE), ("integrations", INTEGRATION)):
+        if pins[name] != run("git", "rev-parse", "HEAD", cwd=repo, env=os.environ.copy()):
+            raise RuntimeError(f"{name} checkout must match the pinned child revision {pins[name]}")
     with tempfile.TemporaryDirectory(prefix="memcastle-compose-") as temporary:
         root = Path(temporary)
         project = root / "provider"
@@ -42,16 +46,17 @@ def main() -> None:
         identity.parent.mkdir(parents=True)
         # Libgit2 reads this file, not the Git author environment variables, when creating the rendered ref.
         identity.write_text("[user]\n\tname = Template Test\n\temail = test@example.invalid\n")
-        run(GIT_TPL, "init", str(PARENT), str(project), "--init", "--defaults", "--strict-answers",
+        result = json.loads(run(GIT_TPL, "--json", "init", str(PARENT), str(project), "--init", "--defaults", "--strict-answers",
             "--answer", "plugin_id=example", "--answer", 'sources=["jira"]',
             "--answer", 'integrations=["assistant"]', "--answer", f"source_template={SOURCE}",
-            "--answer", f"integration_template={INTEGRATION}", cwd=PARENT, env=env)
+            "--answer", f"integration_template={INTEGRATION}", cwd=PARENT, env=env))
+        assert result["ok"]
         config_file = project / ".config/git.tpl.toml"
         config = tomllib.loads(config_file.read_text())
         composed = {child["from"]: child for child in config["composed"]}
         for name, repo in (("sources", SOURCE), ("integrations", INTEGRATION)):
-            assert composed[name]["ref"] == "main"
-            assert composed[name]["commit"] == run("git", "rev-parse", "HEAD", cwd=repo, env=env)
+            assert composed[name]["ref"] == pins[name]
+            assert composed[name]["commit"] == pins[name]
         assert (project / "modules/jira/memcastle-source.toml").is_file()
         assert (project / "modules/assistant/memcastle-integration.toml").is_file()
         duplicate = subprocess.run(
@@ -61,14 +66,15 @@ def main() -> None:
              "--answer", f"integration_template={INTEGRATION}"],
             cwd=PARENT, env=env, text=True, capture_output=True,
         )
-        assert duplicate.returncode != 0 and "tpl::compose::invalid" in duplicate.stdout + duplicate.stderr
+        assert duplicate.returncode != 0 and json.loads(duplicate.stdout)["error"]["code"] == "tpl::compose::invalid"
         assert not (root / "duplicate").exists()
         config_file.write_text(config_file.read_text().replace('sources = ["jira"]', 'sources = ["jira", "confluence"]'))
         run("git", "add", ".config/git.tpl.toml", cwd=project, env=env)
         run("git", "commit", "-m", "Add a source module", cwd=project, env=env)
-        run(GIT_TPL, "update", "--defaults", cwd=project, env=env)
-        run(GIT_TPL, "merge", cwd=project, env=env)
+        assert json.loads(run(GIT_TPL, "--json", "update", "--defaults", cwd=project, env=env))["ok"]
+        assert json.loads(run(GIT_TPL, "--json", "merge", cwd=project, env=env))["ok"]
         assert (project / "modules/confluence/memcastle-source.toml").is_file()
+        assert {child["from"]: child["commit"] for child in tomllib.loads(config_file.read_text())["composed"]} == pins
         if "--build" in sys.argv[1:]:
             run(sys.executable, "scripts/package.py", cwd=project, env=env)
             run(sys.executable, "-m", "unittest", "discover", "-s", "tests", cwd=project, env=env)
@@ -85,6 +91,7 @@ def main() -> None:
                 signed = json.loads(run(core, "--json", "plugin", "sign", "--key", str(key),
                                         str(project / "dist/example-0.1.0.tar.gz"), cwd=project, env=env))
                 assert signed["sha256"] == hashlib.sha256((project / "dist/example-0.1.0.tar.gz").read_bytes()).hexdigest()
+                run(sys.executable, "scripts/smoke_install.py", cwd=project, env=dict(env, MEMCASTLE_BIN=core))
         print("GitTPL 0.14 composed init, recorded commits, and module update/merge passed")
 
 

@@ -52,7 +52,7 @@ default = []
 item_pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"
 item_message = "use lowercase words, numbers and hyphens for each integration ID"
 
-# Local paths are for template tests and offline authoring; the resolved branch commits are recorded with the project.
+# Child revisions advance only after their generated modules pass their own template CI.
 [questions.source_template]
 type = "string"
 prompt = "Source module template repository"
@@ -65,10 +65,10 @@ default = "https://github.com/memcastle/memcastle-integration.tpl"
 
 [[compose]]
 source = "{{ source_template }}"
-ref = "main"
+ref = "5f2a8350bd82c49ec2370d70c83019ff6fc5a822"
 from = "sources"
 
 [[compose]]
 source = "{{ integration_template }}"
-ref = "main"
+ref = "04cc8455f056485cb08298a4a0af82909d314fe9"
 from = "integrations"

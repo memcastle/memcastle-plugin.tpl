@@ -32,6 +32,8 @@ jobs:
           targets: wasm32-wasip2
       - name: Build and package {{ plugin_id }}
         run: python3 scripts/package.py
+      - name: Format, lint and test only this provider's modules
+        run: python3 scripts/check_modules.py
       - name: Check packaged manifest matches its reviewed source
         run: |
           git diff --exit-code -- plugin.toml || {
@@ -66,3 +68,11 @@ jobs:
           done
       - name: Validate plugin metadata
         run: python3 -m unittest discover -s tests
+      - name: Exercise archive installation when released Core supports plugins
+        run: |
+          binary=("$RUNNER_TEMP"/memcastle_*_linux-amd64)
+          if "${binary[0]}" plugin --help >/dev/null 2>&1; then
+            MEMCASTLE_BIN="${binary[0]}" python3 scripts/smoke_install.py
+          else
+            echo 'Latest released Core predates plugin installation; current-Core contract CI runs the archive smoke test.'
+          fi

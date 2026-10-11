@@ -105,6 +105,10 @@ def main() -> None:
             test_component.parent.mkdir(exist_ok=True)
             shutil.copyfile(built, test_component)
         elif kind == "integration":
+            # A module may carry generated JavaScript or an independently built agent bundle.
+            # Always run its declared build before hashing the entry and copying assets.
+            if (module_dir / "package.json").is_file():
+                subprocess.run(["npm", "run", "build"], cwd=module_dir, check=True)
             with safe_file(module["manifest"]).open("rb") as source:
                 integration = tomllib.load(source)
             prefix = f"modules/{name}"

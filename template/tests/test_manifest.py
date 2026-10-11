@@ -20,7 +20,15 @@ class PluginManifestTests(unittest.TestCase):
     def test_declared_module_manifests_exist(self):
         plugin = tomllib.loads((ROOT / "plugin.toml").read_text())
         for module in plugin.get("modules", []):
-            self.assertTrue((ROOT / module["manifest"]).is_file())
+            path = ROOT / module["manifest"]
+            self.assertTrue(path.is_file())
+            child = tomllib.loads(path.read_text())
+            identity = child["source"] if module["type"] == "source" else child["integration"]
+            self.assertEqual(identity["name"] if module["type"] == "source" else identity["id"], module["id"])
+            self.assertEqual(identity["version"], module["version"])
+            self.assertEqual(child["compatibility"]["memcastle"], plugin["memcastle"])
+            if module["type"] == "source":
+                self.assertEqual(child["compatibility"]["contract"], module["contract"])
 
     def test_packaging_never_follows_a_source_component_symlink(self):
         spec = spec_from_file_location("provider_package", ROOT / "scripts/package.py")
