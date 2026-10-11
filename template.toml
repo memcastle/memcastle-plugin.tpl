@@ -1,5 +1,5 @@
 name = "memcastle-plugin"
-description = "A versioned provider plugin composed from pinned module templates"
+description = "A versioned provider plugin composed from revision-tracked module templates"
 strict = true
 
 [questions.plugin_id]
@@ -39,20 +39,20 @@ prompt = "Repository name"
 default = "memcastle-{{ plugin_id }}"
 
 [questions.sources]
-type = "string"
-prompt = "Source module IDs (comma-separated, empty for none)"
-default = ""
-pattern = "^$|^[a-z0-9]+(-[a-z0-9]+)*(,[a-z0-9]+(-[a-z0-9]+)*)*$"
-message = "list unique lowercase hyphenated IDs, comma-separated, or leave empty"
+type = "list"
+prompt = "Source module IDs (empty for none)"
+default = []
+item_pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"
+item_message = "use lowercase words, numbers and hyphens for each source ID"
 
 [questions.integrations]
-type = "string"
-prompt = "Integration module IDs (comma-separated, empty for none)"
-default = ""
-pattern = "^$|^[a-z0-9]+(-[a-z0-9]+)*(,[a-z0-9]+(-[a-z0-9]+)*)*$"
-message = "list unique lowercase hyphenated IDs, comma-separated, or leave empty"
+type = "list"
+prompt = "Integration module IDs (empty for none)"
+default = []
+item_pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"
+item_message = "use lowercase words, numbers and hyphens for each integration ID"
 
-# Local paths are for template tests and offline authoring; production defaults are pinned remote repositories.
+# Local paths are for template tests and offline authoring; the resolved branch commits are recorded with the project.
 [questions.source_template]
 type = "string"
 prompt = "Source module template repository"
@@ -65,10 +65,10 @@ default = "https://github.com/memcastle/memcastle-integration.tpl"
 
 [[compose]]
 source = "{{ source_template }}"
-rev = "3b17f9fec517a95c82939a4fba94b65fcdd039a8"
+ref = "main"
 from = "sources"
 
 [[compose]]
 source = "{{ integration_template }}"
-rev = "4186131dd849d7a53ad5a7b4c5fa035d134b7e8e"
+ref = "main"
 from = "integrations"

@@ -1,7 +1,7 @@
 [answers]
 plugin_id = "example"
-sources = "jira,confluence"
-integrations = "assistant"
+sources = ["jira", "confluence"]
+integrations = ["assistant"]
 source_template = "../memcastle-source.tpl"
 integration_template = "../memcastle-integration.tpl"
 

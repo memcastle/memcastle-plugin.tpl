@@ -1,5 +1,7 @@
 [answers]
 plugin_id = "empty"
+sources = []
+integrations = []
 
 [expect]
 files = ["plugin.toml", "README.md", "scripts/package.py", ".github/workflows/plugin.yml", ".github/workflows/release.yml"]
