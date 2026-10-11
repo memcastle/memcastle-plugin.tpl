@@ -19,7 +19,10 @@ GIT_TPL = os.environ.get("GIT_TPL_BIN", "git-tpl")
 
 
 def run(*args: str, cwd: Path, env: dict[str, str]) -> str:
-    return subprocess.run(args, cwd=cwd, env=env, check=True, text=True, capture_output=True).stdout.strip()
+    result = subprocess.run(args, cwd=cwd, env=env, text=True, capture_output=True)
+    if result.returncode:
+        raise RuntimeError(f"{' '.join(args)} failed ({result.returncode}):\n{result.stdout}\n{result.stderr}")
+    return result.stdout.strip()
 
 
 def main() -> None:
@@ -35,6 +38,10 @@ def main() -> None:
         env = dict(os.environ, XDG_CONFIG_HOME=str(root / "config"), GIT_AUTHOR_NAME="Template Test",
                    GIT_AUTHOR_EMAIL="test@example.invalid", GIT_COMMITTER_NAME="Template Test",
                    GIT_COMMITTER_EMAIL="test@example.invalid")
+        identity = root / "config/git/config"
+        identity.parent.mkdir(parents=True)
+        # Libgit2 reads this file, not the Git author environment variables, when creating the rendered ref.
+        identity.write_text("[user]\n\tname = Template Test\n\temail = test@example.invalid\n")
         run(GIT_TPL, "init", str(PARENT), str(project), "--init", "--defaults", "--strict-answers",
             "--answer", "plugin_id=example", "--answer", 'sources=["jira"]',
             "--answer", 'integrations=["assistant"]', "--answer", f"source_template={SOURCE}",
