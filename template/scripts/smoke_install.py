@@ -91,7 +91,7 @@ def main() -> None:
             assert request(base, f"/api/plugins/{plugin}")["id"] == plugin
             for item in manifest.get("modules", []):
                 if item["type"] == "source":
-                    source = request(base, f"/api/sources/{item['id']}")
+                    source = request(base, f"/api/source-packages/{item['id']}")
                     assert source["state"] == "installed", source
                     command = subprocess.run([str(binary), "--palace", str(root / "palace"),
                                               "source", "enable", item["id"]], env=env,
