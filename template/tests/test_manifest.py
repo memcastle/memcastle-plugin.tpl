@@ -1,6 +1,8 @@
 """Generated-project metadata checks, independent of the module implementations."""
 
 from pathlib import Path
+from importlib.util import module_from_spec, spec_from_file_location
+import tempfile
 import tomllib
 import unittest
 
@@ -19,6 +21,24 @@ class PluginManifestTests(unittest.TestCase):
         plugin = tomllib.loads((ROOT / "plugin.toml").read_text())
         for module in plugin.get("modules", []):
             self.assertTrue((ROOT / module["manifest"]).is_file())
+
+    def test_packaging_never_follows_a_source_component_symlink(self):
+        spec = spec_from_file_location("provider_package", ROOT / "scripts/package.py")
+        packager = module_from_spec(spec)
+        spec.loader.exec_module(packager)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "modules/files-one").mkdir(parents=True)
+            outside = root / "outside.txt"
+            outside.write_text("untouched")
+            (root / "modules/files-one/source.wasm").symlink_to(outside)
+            packager.ROOT = root
+            with self.assertRaisesRegex(ValueError, "symlink"):
+                packager.safe_parent("modules/files-one/source.wasm")
+            self.assertEqual(outside.read_text(), "untouched")
+            for alias in ("modules/files-one/./source.wasm", "modules//files-one/source.wasm", "modules/../source.wasm"):
+                with self.assertRaisesRegex(ValueError, "unsafe"):
+                    packager.safe_parent(alias)
 
 
 if __name__ == "__main__":

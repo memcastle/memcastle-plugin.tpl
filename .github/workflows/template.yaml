@@ -1,0 +1,41 @@
+name: Validate composed plugin template
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  template:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: memcastle-plugin.tpl
+      - uses: actions/checkout@v4
+        with:
+          repository: memcastle/memcastle-source.tpl
+          path: memcastle-source.tpl
+      - uses: actions/checkout@v4
+        with:
+          repository: memcastle/memcastle-integration.tpl
+          path: memcastle-integration.tpl
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip2
+      - uses: Swatinem/rust-cache@v2
+      - name: Install the released GitTPL composition contract
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download 0.14.0 --repo noirbizarre/git-tpl --pattern 'git-tpl_0.14.0_linux-amd64.tar.gz' --dir "$RUNNER_TEMP"
+          tar -xzf "$RUNNER_TEMP/git-tpl_0.14.0_linux-amd64.tar.gz" -C "$RUNNER_TEMP" ./git-tpl
+      - name: Test empty and mixed rendering
+        working-directory: memcastle-plugin.tpl
+        run: |
+          "$RUNNER_TEMP/git-tpl" test
+      - name: Test project init, composition lock, update and package
+        working-directory: memcastle-plugin.tpl
+        env:
+          GIT_TPL_BIN: ${{ runner.temp }}/git-tpl
+        run: python3 scripts/check_composition.py --build

@@ -22,8 +22,8 @@ MAX_SIZE = 256 * 1024 * 1024
 
 
 def safe_file(name: str) -> Path:
-    parts = Path(name).parts
-    if not parts or "\\" in name or any(part in ("", ".", "..") for part in parts) or Path(name).is_absolute():
+    parts = name.split("/")
+    if not name or "\\" in name or ":" in name or any(part in ("", ".", "..") for part in parts) or Path(name).is_absolute():
         raise ValueError(f"unsafe module path {name!r}")
     path = ROOT
     for part in parts:
@@ -134,15 +134,19 @@ def main() -> None:
 
 def safe_parent(name: str) -> Path:
     """The sole file the build writes: source.wasm in the module's own directory."""
-    parts = Path(name).parts
-    if len(parts) != 3 or parts[0] != "modules" or parts[2] != "source.wasm":
+    parts = name.split("/")
+    if len(parts) != 3 or parts[0] != "modules" or parts[1] in ("", ".", "..") or parts[2] != "source.wasm":
         raise ValueError(f"unsafe source component destination {name!r}")
     parent = ROOT
     for part in parts[:-1]:
         parent = parent / part
         if parent.is_symlink() or not parent.is_dir():
             raise ValueError(f"unsafe source component destination {name!r}")
-    return parent / "source.wasm"
+    target = parent / "source.wasm"
+    # `copyfile` follows a destination symlink, including one whose target is outside this plugin project.
+    if target.is_symlink():
+        raise ValueError(f"unsafe source component destination {name!r} is a symlink")
+    return target
 
 
 if __name__ == "__main__":
