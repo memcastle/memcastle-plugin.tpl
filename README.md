@@ -36,6 +36,8 @@ The generated `scripts/check_modules.py` formats/lints/tests this provider's sou
 `MEMCASTLE_BIN=/path/to/memcastle python3 scripts/smoke_install.py` validates the built archive in a disposable palace,
 including preview, per-source consent, inactive installation, explicit activation and local agent integration installation.
 Generated validation workflows call MemCastle Core's shared artifact-testing workflow.
+They run once for every pull request and for every push to `main`, including merges; branch pushes to open PRs do not
+trigger a second build.
 Each provider owns the build, packaging and release jobs in its repository;
 the release workflow reuses its provider-specific validation before publishing.
 Their Core matrix always includes the permanent `main` prerelease, whose source SHA is recorded in its release body,
