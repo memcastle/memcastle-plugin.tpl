@@ -35,12 +35,14 @@ The resulting archive is the installation unit; neither source modules nor integ
 The generated `scripts/check_modules.py` formats/lints/tests this provider's source and agent modules independently.
 `MEMCASTLE_BIN=/path/to/memcastle python3 scripts/smoke_install.py` validates the built archive in a disposable palace,
 including preview, per-source consent, inactive installation, explicit activation and local agent integration installation.
-Generated validation and release workflows call MemCastle Core's shared reusable workflows.
+Generated validation workflows call MemCastle Core's shared artifact-testing workflow.
+Each provider owns the build, packaging and release jobs in its repository;
+the release workflow reuses its provider-specific validation before publishing.
 Their Core matrix always includes the permanent `main` prerelease, whose source SHA is recorded in its release body,
 and can add exact plugin-capable stable versions via the `core-versions` JSON array.
 Every matrix leg runs source fixtures and the archive installation/activation smoke test; Core 0.4.1 predates plugin
 installation and is therefore not a compatible matrix entry.
-The generated workflows retain provider-specific scripts and metadata; Core owns acquisition and release orchestration.
+The generated workflows retain provider-specific scripts and metadata; Core owns the host download and integration checks.
 Pin the shared workflow references to a reviewed Core commit when adopting a new version of this template.
 Core contract CI separately tests a generated project against the current Core checkout.
 Tag `PLUGIN_ID/vVERSION` on a reviewed `main` commit to publish just this provider, independently of Core releases.
