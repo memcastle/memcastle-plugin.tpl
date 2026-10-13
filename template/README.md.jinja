@@ -21,6 +21,7 @@ The smoke check starts an isolated daemon and uses a temporary agent configurati
 Provider CI builds and packages locally, then calls Core's shared artifact-validation workflow for a `[main, versions...]`
 matrix, with additional exact plugin-capable
 stable versions configured in `core-versions` and the `main` prerelease always included.
+The reusable validation workflow follows Core's `main` branch without a revision pin.
 It runs on every pull request and every push to `main`, including merges, without a second push run on PR branches.
 Every version exercises source fixtures and archive installation/activation; incompatible versions fail the workflow.
 The development release body records the exact Core source SHA, and the workflow summary reports it for each run.

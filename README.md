@@ -45,6 +45,6 @@ and can add exact plugin-capable stable versions via the `core-versions` JSON ar
 Every matrix leg runs source fixtures and the archive installation/activation smoke test; Core 0.4.1 predates plugin
 installation and is therefore not a compatible matrix entry.
 The generated workflows retain provider-specific scripts and metadata; Core owns the host download and integration checks.
-Pin the shared workflow references to a reviewed Core commit when adopting a new version of this template.
+Generated workflows follow Core's `main` branch, so improvements to shared validation need no template update.
 Core contract CI separately tests a generated project against the current Core checkout.
 Tag `PLUGIN_ID/vVERSION` on a reviewed `main` commit to publish just this provider, independently of Core releases.

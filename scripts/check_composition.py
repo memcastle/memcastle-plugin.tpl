@@ -62,7 +62,7 @@ def main() -> None:
         for workflow in ("plugin.yml", "release.yml"):
             content = (project / ".github/workflows" / workflow).read_text()
             if workflow == "plugin.yml":
-                assert "memcastle/memcastle/.github/workflows/plugin-validation.yaml@" in content
+                assert "memcastle/memcastle/.github/workflows/plugin-validation.yaml@main" in content
                 assert "archive-path: ${{ needs.package.outputs.archive }}" in content
                 assert "core-versions: '[]'" in content
             else:
