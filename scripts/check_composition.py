@@ -59,6 +59,12 @@ def main() -> None:
             assert composed[name]["commit"] == pins[name]
         assert (project / "modules/jira/memcastle-source.toml").is_file()
         assert (project / "modules/assistant/memcastle-integration.toml").is_file()
+        for workflow in ("plugin.yml", "release.yml"):
+            content = (project / ".github/workflows" / workflow).read_text()
+            shared = "plugin-validation" if workflow == "plugin.yml" else "standalone-plugin-release"
+            assert f"memcastle/memcastle/.github/workflows/{shared}.yaml@" in content
+            assert "core-versions: '[]'" in content
+            assert "latest_core_release" not in content
         duplicate = subprocess.run(
             [GIT_TPL, "--json", "render", str(PARENT), "-o", str(root / "duplicate"), "--defaults",
              "--answer", "plugin_id=example", "--answer", 'sources=["assistant"]',
