@@ -1,0 +1,13 @@
+[answers]
+plugin_id = "example"
+gh_ship = true
+ship_token = "app"
+sources = []
+integrations = []
+
+[expect]
+files = [".github/ship.yml", ".github/workflows/ship.yml", ".github/workflows/prepare-release.yml", ".github/workflows/publish-release.yml", "scripts/prepare_release.py"]
+
+[expect.contains]
+".github/workflows/ship.yml" = ["actions/create-github-app-token@v3", "steps.app-token.outputs.token"]
+".github/workflows/prepare-release.yml" = ["dry_run:", "ship-release"]

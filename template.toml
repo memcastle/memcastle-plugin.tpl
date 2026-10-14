@@ -43,6 +43,19 @@ type = "boolean"
 prompt = "Upload module test coverage to Codecov?"
 default = false
 
+[questions.gh_ship]
+type = "boolean"
+prompt = "Enable gh-ship release delivery?"
+default = false
+
+[questions.ship_token]
+type = "choice"
+prompt = "gh-ship authentication"
+choices = ["app", "pat"]
+default = "app"
+when = "{{ gh_ship }}"
+default_when_skipped = true
+
 [questions.sources]
 type = "list"
 prompt = "Source module IDs (empty for none)"

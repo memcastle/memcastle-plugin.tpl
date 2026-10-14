@@ -1,0 +1,53 @@
+name: 📦 Publish {{ plugin_id }} release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: 🧪 Validate release archive
+    uses: ./.github/workflows/plugin.yml
+
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    environment:
+      name: release
+      url: {% raw %}${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ inputs.tag }}{% endraw %}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: {% raw %}${{ inputs.tag }}{% endraw %}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require reviewed tag on main and existing draft
+        env:
+          GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
+          TAG: {% raw %}${{ inputs.tag }}{% endraw %}
+        run: |
+          set -euo pipefail
+          expected="$(python3 -c 'import tomllib; p=tomllib.load(open("plugin.toml", "rb"))["plugin"]; print("{}/v{}".format(p["id"], p["version"]))')"
+          test "$TAG" = "$expected" || { echo '::error::tag does not match plugin.toml'; exit 1; }
+          git fetch origin main
+          git merge-base --is-ancestor HEAD origin/main || { echo '::error::tag must be on main'; exit 1; }
+          test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true
+      - uses: actions/download-artifact@v8
+        with:
+          name: plugin-package
+      - name: Upload validated archive
+        env:
+          GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
+          TAG: {% raw %}${{ inputs.tag }}{% endraw %}
+          ARCHIVE: {% raw %}${{ needs.validate.outputs.archive }}{% endraw %}
+        run: |
+          test -s "$ARCHIVE"
+          gh release upload "$TAG" "$ARCHIVE" --clobber

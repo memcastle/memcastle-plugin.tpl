@@ -1,0 +1,57 @@
+name: 🚀 Prepare {{ plugin_id }} release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        type: boolean
+        default: false
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: release
+      deployment: false
+    steps:
+{% if ship_token == "app" %}
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: {% raw %}${{ vars.APP_CLIENT_ID }}{% endraw %}
+          private-key: {% raw %}${{ secrets.APP_PRIVATE_KEY }}{% endraw %}
+{% endif %}
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          token: {% if ship_token == "app" %}{% raw %}${{ steps.app-token.outputs.token }}{% endraw %}{% else %}{% raw %}${{ secrets.SHIP_TOKEN }}{% endraw %}{% endif %}
+      - name: Calculate version and release notes
+        id: version
+        run: python3 scripts/prepare_release.py
+      - name: Push release commit
+        if: {% raw %}${{ steps.version.outputs.changed == 'true' && !inputs.dry_run }}{% endraw %}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add plugin.toml
+          git commit -m "chore(release): {% raw %}${{ steps.version.outputs.version }}{% endraw %}"
+          git push origin HEAD
+      - name: Install gh-ship
+        env:
+          GH_TOKEN: {% if ship_token == "app" %}{% raw %}${{ steps.app-token.outputs.token }}{% endraw %}{% else %}{% raw %}${{ secrets.SHIP_TOKEN }}{% endraw %}{% endif %}
+        run: gh extension install noirbizarre/gh-ship
+      - name: Validate release artifact
+        env:
+          GH_TOKEN: {% if ship_token == "app" %}{% raw %}${{ steps.app-token.outputs.token }}{% endraw %}{% else %}{% raw %}${{ secrets.SHIP_TOKEN }}{% endraw %}{% endif %}
+        run: gh ship validate ship.release.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ship-release
+          path: ship.release.json
+          if-no-files-found: error
