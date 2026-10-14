@@ -59,6 +59,9 @@ def main() -> None:
             assert composed[name]["commit"] == pins[name]
         assert (project / "modules/jira/memcastle-source.toml").is_file()
         assert (project / "modules/assistant/memcastle-integration.toml").is_file()
+        assert not (project / ".github/workflows/coverage.yml").exists()
+        assert not (project / ".github/codecov.yml").exists()
+        assert not (project / "scripts/coverage.py").exists()
         for workflow in ("plugin.yml", "release.yml"):
             content = (project / ".github/workflows" / workflow).read_text()
             if workflow == "plugin.yml":

@@ -38,6 +38,11 @@ type = "string"
 prompt = "Repository name"
 default = "memcastle-{{ plugin_id }}"
 
+[questions.codecov]
+type = "boolean"
+prompt = "Upload module test coverage to Codecov?"
+default = false
+
 [questions.sources]
 type = "list"
 prompt = "Source module IDs (empty for none)"

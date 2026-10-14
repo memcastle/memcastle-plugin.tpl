@@ -1,12 +1,13 @@
 [answers]
 plugin_id = "example"
+codecov = true
 sources = ["jira", "confluence"]
 integrations = ["assistant"]
 source_template = "../memcastle-source.tpl"
 integration_template = "../memcastle-integration.tpl"
 
 [expect]
-files = ["plugin.toml", "modules/jira/memcastle-source.toml", "modules/confluence/src/lib.rs", "modules/assistant/memcastle-integration.toml", "modules/assistant/dist/index.js"]
+files = ["plugin.toml", "modules/jira/memcastle-source.toml", "modules/confluence/src/lib.rs", "modules/assistant/memcastle-integration.toml", "modules/assistant/dist/index.js", ".github/workflows/coverage.yml", ".github/codecov.yml", "scripts/coverage.py"]
 
 [expect.contains]
 "plugin.toml" = ['id = "jira"', 'id = "confluence"', 'id = "assistant"']

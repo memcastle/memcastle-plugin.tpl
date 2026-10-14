@@ -48,3 +48,8 @@ The generated workflows retain provider-specific scripts and metadata; Core owns
 Generated workflows follow Core's `main` branch, so improvements to shared validation need no template update.
 Core contract CI separately tests a generated project against the current Core checkout.
 Tag `PLUGIN_ID/vVERSION` on a reviewed `main` commit to publish just this provider, independently of Core releases.
+
+Set the `codecov` answer to `true` to generate a separate coverage workflow and Codecov configuration.
+It measures native Rust source-module tests and Bun integration suites declaring `test:cover`, then uploads
+the actual LCOV reports with GitHub OIDC; modules without an instrumented suite are skipped.
+The coverage job needs `id-token: write` and Codecov must be enabled for the repository.
