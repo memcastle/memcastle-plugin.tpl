@@ -28,8 +28,13 @@ It runs on every pull request and every push to `main`, including merges, withou
 Every version exercises source fixtures and archive installation/activation; incompatible versions fail the workflow.
 The development release body records the exact Core source SHA, and the workflow summary reports it for each run.
 Core CI separately tests a freshly composed project against its current install contract.
+{% if gh_ship %}
+The publish workflow validates the reviewed `{{ plugin_id }}/v<plugin.toml version>` tag on `main`, rebuilds the
+archive and runs the compatibility matrix before uploading to gh-ship's draft release.
+{% else %}
 The provider's own release workflow accepts only a `{{ plugin_id }}/v<plugin.toml version>` tag on `main`, then builds
 the reviewed artifact, runs manifest and compatibility-matrix tests, and refuses an existing release.
+{% endif %}
 Keep IDs stable when moving this project from `plugins/{{ plugin_id }}/` to its own repository.
 {% if codecov %}
 The source/integration jobs in `ci.yaml` measure native Rust and Bun tests and upload LCOV and JUnit reports
