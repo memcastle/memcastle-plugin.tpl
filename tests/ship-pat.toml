@@ -6,7 +6,7 @@ sources = []
 integrations = []
 
 [expect]
-files = [".github/ship.yml", ".github/workflows/ship.yml", ".github/workflows/prepare-release.yml", ".github/workflows/publish-release.yml", "scripts/prepare_release.py"]
+files = [".github/ship.yml", ".github/workflows/ship.yml", ".github/workflows/prepare-release.yml", ".github/workflows/publish-release.yml", "scripts/prepare_release.py", "tests/test_release.py"]
 
 [expect.contains]
 ".github/workflows/ship.yml" = ["secrets.SHIP_TOKEN"]
