@@ -20,7 +20,7 @@ for id in $(jq -r '.modules[] | select(.type == "source") | .id' .plugin-test-in
   export CARGO_ENCODED_RUSTFLAGS="--remap-path-prefix=$cargo_home=/cargo"$'\x1f'"--remap-path-prefix=$sysroot/lib/rustlib/src/rust=/rustc/$commit"$'\x1f'"--remap-path-prefix=$module=/module"
   cargo build --manifest-path "$module/Cargo.toml" --locked --release --target wasm32-wasip2
   crate="$(cargo metadata --no-deps --format-version 1 --manifest-path "$module/Cargo.toml" | jq -er '.packages[0].targets[] | select(.kind | index("cdylib")) | .name')"
-  cp "$module/target/wasm32-wasip2/release/$crate.wasm" "$module/source.wasm"
+  cp "${CARGO_TARGET_DIR:-$module/target}/wasm32-wasip2/release/$crate.wasm" "$module/source.wasm"
 done
 
 for id in $(jq -r '.modules[] | select(.type == "integration") | .id' .plugin-test-inventory.json); do

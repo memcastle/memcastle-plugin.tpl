@@ -204,19 +204,19 @@ jobs:
         with:
           version: main
 {% for id in sources %}
-       - uses: actions/download-artifact@v8
-         with:
-           name: source-{{ id }}
+      - uses: actions/download-artifact@v8
+        with:
+          name: source-{{ id }}
           path: sources/{{ id }}/
 {% endfor %}
 {% for id in integrations %}
-       - uses: actions/download-artifact@v8
-         with:
-           name: integration-{{ id }}
+      - uses: actions/download-artifact@v8
+        with:
+          name: integration-{{ id }}
           path: integrations/{{ id }}/dist/
 {% endfor %}
-       - name: Package plugin
-         run: memcastle plugin package
+      - name: Package plugin
+        run: memcastle plugin package
       - uses: actions/upload-artifact@v7
         with:
           name: plugin-package
