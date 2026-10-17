@@ -255,8 +255,12 @@ jobs:
     name: 🧪 Check with Core
     needs: package
     if: {% raw %}${{ always() && needs.package.result == 'success' }}{% endraw %}
+    strategy:
+      fail-fast: false
+      matrix:
+        core: [{% if core_versions %}{% for version in core_versions %}"{{ version }}"{% if not loop.last %}, {% endif %}{% endfor %}{% else %}"main"{% endif %}]
     uses: memcastle/memcastle/.github/workflows/plugin-validation.yaml@main
     with:
       artifact-name: plugin-package
       archive-path: {% raw %}${{ needs.package.outputs.archive }}{% endraw %}
-      core-versions: '[]'
+      core-version: {% raw %}${{ matrix.core }}{% endraw %}

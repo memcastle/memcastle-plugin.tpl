@@ -26,6 +26,8 @@ run `git tpl test`, then review the GitTPL diff in each provider repository befo
 Existing projects retain their recorded commits until they explicitly run `git tpl update --defaults --json`,
 review `git tpl diff --json`, and run `git tpl merge --json`.
 `git tpl test` checks empty and mixed renders, typed modules, conditional CI and the pinned child composition.
+`core_versions` selects a static Core validation matrix. It defaults to `main`; plugin-capable minor/major release
+trees can be offered when stable binaries are published, with the Core setup action resolving their latest patch.
 Set `MEMCASTLE_BIN` to a Core binary with `plugin package` and `plugin test` before running it locally;
 the empty and mixed cases build and smoke-test actual archives in disposable GitTPL sandboxes.
 The template CI downloads the verified Core `main` development binary and installs Rust, `wasm32-wasip2` and Bun.

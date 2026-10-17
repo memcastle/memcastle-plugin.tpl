@@ -43,6 +43,13 @@ type = "boolean"
 prompt = "Upload module test coverage to Codecov?"
 default = false
 
+[questions.core_versions]
+type = "multi_choice"
+prompt = "Core releases to validate"
+help = "Select main and, when available, plugin-capable minor/major release trees (latest stable patch)"
+choices = ["main"]
+default = ["main"]
+
 [questions.gh_ship]
 type = "boolean"
 prompt = "Enable gh-ship release delivery?"
