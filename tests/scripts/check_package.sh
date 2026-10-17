@@ -3,7 +3,10 @@ set -euo pipefail
 
 command -v memcastle >/dev/null || { echo 'put a plugin-capable Core binary on PATH'; exit 1; }
 plugin="$1"
-version="$2"
+# The rendered command sandbox has no Git history; a project does after GitTPL init.
+git init -q
+git add .
+git -c user.name='GitTPL test' -c user.email='git-tpl@example.invalid' commit -qm 'test: record rendered plugin'
 memcastle plugin inspect --json > .plugin-test-inventory.json
 
 for id in $(jq -r '.modules[] | select(.type == "source") | .id' .plugin-test-inventory.json); do
@@ -33,11 +36,12 @@ memcastle plugin package --json > .plugin-test-package.json
 test "$before" = "$(sha256sum plugin.toml)"
 archive="$(jq -r .archive .plugin-test-package.json)"
 checksum="$(jq -r .checksum .plugin-test-package.json)"
-test "$archive" = "dist/$plugin-$version.tar.gz"
-test "$checksum" = "dist/$plugin-$version.sha256sum"
+[[ "$archive" == "dist/$plugin-"*.tar.gz ]]
+test "$checksum" = "${archive%.tar.gz}.sha256sum"
+test ! -e manifest.toml
 tar -tf "$archive" | grep '^manifest.toml$' >/dev/null
 if tar -tf "$archive" | grep '^plugin.toml$' >/dev/null; then exit 1; fi
-(cd dist && sha256sum --check "$plugin-$version.sha256sum")
+(cd dist && sha256sum --check "$(basename "$checksum")")
 memcastle plugin test "$archive"
 first="$(sha256sum "$archive")"
 memcastle plugin package --json > .plugin-test-package-again.json

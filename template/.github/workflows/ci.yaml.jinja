@@ -6,10 +6,12 @@ on:
     branches: [main]
   workflow_dispatch:
   workflow_call:
-    outputs:
-      archive:
-        description: Built release archive relative to the repository root
-        value: {% raw %}${{ jobs.package.outputs.archive }}{% endraw %}
+    inputs:
+      tag:
+        description: Reviewed release tag to build rather than the caller's branch commit
+        type: string
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -30,6 +32,8 @@ jobs:
         source: [{% for id in sources %}"{{ id }}"{% if not loop.last %}, {% endif %}{% endfor %}]
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: {% raw %}${{ inputs.tag || github.sha }}{% endraw %}
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-wasip2
@@ -99,9 +103,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: source-{% raw %}${{ matrix.source }}{% endraw %}
-          path: |
-            modules/{% raw %}${{ matrix.source }}{% endraw %}/source.wasm
-            modules/{% raw %}${{ matrix.source }}{% endraw %}/dist/source.wasm
+          path: modules/{% raw %}${{ matrix.source }}{% endraw %}/source.wasm
           if-no-files-found: error
 
 {% endif %}
@@ -120,6 +122,8 @@ jobs:
         integration: [{% for id in integrations %}"{{ id }}"{% if not loop.last %}, {% endif %}{% endfor %}]
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: {% raw %}${{ inputs.tag || github.sha }}{% endraw %}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: '1.4.2'
@@ -191,10 +195,12 @@ jobs:
     permissions:
       actions: read
       contents: read
-    outputs:
-      archive: {% raw %}${{ steps.archive.outputs.path }}{% endraw %}
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: {% raw %}${{ inputs.tag || github.sha }}{% endraw %}
+          fetch-depth: 0
+          fetch-tags: true
       - uses: memcastle/memcastle@main
         with:
           version: main
@@ -211,36 +217,8 @@ jobs:
           for id in $(jq -r '.[]' <<< "$INTEGRATIONS"); do
             gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "integration-$id" --dir "modules/$id/dist"
           done
-      - name: Check source locks and package immutable plugin descriptor
-        id: archive
-        run: |
-          set -euo pipefail
-          for manifest in modules/*/memcastle-source.toml; do
-            if [[ -f "$manifest" ]]; then
-              lock="$(dirname "$manifest")/Cargo.lock"
-              git ls-files --error-unmatch "$lock" >/dev/null || { echo "::error::commit $lock"; exit 1; }
-            fi
-          done
-          # A source/integration overlay shares dist/; its fixture component is not an integration asset.
-          for manifest in modules/*/memcastle-integration.toml; do
-            module_dir="$(dirname "$manifest")"
-            if [[ -f "$module_dir/memcastle-source.toml" ]]; then rm -f "$module_dir/dist/source.wasm"; fi
-          done
-          memcastle plugin package plugin.toml --json > "$RUNNER_TEMP/plugin-package.json"
-          git diff --exit-code -- plugin.toml || { echo '::error::packaging must not change plugin.toml'; exit 1; }
-          git diff --exit-code -- manifest.toml || { echo '::error::commit the regenerated manifest.toml'; exit 1; }
-          path="$(jq -r .archive "$RUNNER_TEMP/plugin-package.json")"
-          checksum="$(jq -r .checksum "$RUNNER_TEMP/plugin-package.json")"
-          test -s "$path"
-          test -s "$checksum"
-          tar -xOzf "$path" manifest.toml | grep '^\[plugin\]$' >/dev/null
-          if tar -tf "$path" | grep -q '^plugin.toml$'; then echo '::error::the descriptor must not be archived'; exit 1; fi
-          (cd "$(dirname "$path")" && sha256sum --check "$(basename "$checksum")")
-          for manifest in modules/*/memcastle-integration.toml; do
-            module_dir="$(dirname "$manifest")"
-            if [[ -f "$module_dir/memcastle-source.toml" ]]; then cp "$module_dir/source.wasm" "$module_dir/dist/source.wasm"; fi
-          done
-          echo "path=$path" >> "$GITHUB_OUTPUT"
+      - name: Package plugin
+        run: memcastle plugin package
       - uses: actions/upload-artifact@v7
         with:
           name: plugin-package
@@ -248,7 +226,6 @@ jobs:
             dist/*.tar.gz
             dist/*.sha256sum
             modules/*/source.wasm
-            modules/*/dist/source.wasm
           if-no-files-found: error
 
   validate:
@@ -262,5 +239,5 @@ jobs:
     uses: memcastle/memcastle/.github/workflows/plugin-validation.yaml@main
     with:
       artifact-name: plugin-package
-      archive-path: {% raw %}${{ needs.package.outputs.archive }}{% endraw %}
       core-version: {% raw %}${{ matrix.core }}{% endraw %}
+      plugin-ref: {% raw %}${{ inputs.tag }}{% endraw %}

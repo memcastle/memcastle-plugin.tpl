@@ -37,7 +37,7 @@ jobs:
           git fetch origin main
           git merge-base --is-ancestor HEAD origin/main || { echo '::error::tag must be on main'; exit 1; }
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            echo '::error::release already exists; bump plugin.version before publishing'
+            echo '::error::release already exists; publish a new version tag'
             exit 1
           fi
       - uses: actions/download-artifact@v8
@@ -46,9 +46,11 @@ jobs:
       - name: Publish this provider's validated archive
         env:
           GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
-          ARCHIVE: {% raw %}${{ needs.validate.outputs.archive }}{% endraw %}
         run: |
-          test -s "$ARCHIVE"
-          checksum="${ARCHIVE%.tar.gz}.sha256sum"
+          set -euo pipefail
+          tag="$GITHUB_REF_NAME"
+          archive="dist/${tag%/v*}-${tag##*/v}.tar.gz"
+          test -s "$archive"
+          checksum="${archive%.tar.gz}.sha256sum"
           test -s "$checksum"
-          gh release create "$GITHUB_REF_NAME" "$ARCHIVE" "$checksum" --generate-notes
+          gh release create "$tag" "$archive" "$checksum" --generate-notes

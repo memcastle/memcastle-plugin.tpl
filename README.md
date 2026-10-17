@@ -33,16 +33,17 @@ the empty and mixed cases build and smoke-test actual archives in disposable Git
 The template CI downloads the verified Core `main` development binary and installs Rust, `wasm32-wasip2` and Bun.
 
 `ci.yaml` builds source components with reproducible Cargo flags and agent integrations with Bun, then runs
-`memcastle plugin package plugin.toml` to write a deterministic release archive containing the generated
-`manifest.toml` (descriptor metadata, version and every artifact checksum) and an external
+`memcastle plugin package` to write a deterministic release archive containing the generated
+`manifest.toml` (descriptor metadata, SCM-derived version and every artifact checksum) and an external
 `dist/ID-VERSION.sha256sum` for the archive. `plugin.toml` is never changed or archived.
-Commit the regenerated `manifest.toml` and each source module's `Cargo.lock` for reproducible builds.
+The local `plugin.toml` stays immutable, and no project-local `manifest.toml` is generated or committed.
+Commit each source module's `Cargo.lock` for reproducible builds.
 The resulting archive is the installation unit; neither source modules nor integration modules are separately fetched from the plugin registry.
 The generated source and integration jobs format, lint and test each module separately.
 The test jobs instrument only Rust library targets, preserve hidden integration assets and allow longer-lived
 agent tests; a source-only plugin still runs Core validation when its integration matrix is skipped.
-When a source and integration share an ID in an existing provider, the package job excludes the fixture component
-from the integration assets and restores it for Core's source conformance check.
+When a source and integration share an ID, their build artifacts remain distinct; Core's validation workflow
+restores the source fixture component only after packaging, outside the integration's archived assets.
 `memcastle plugin test dist/ID-VERSION.tar.gz` validates the archive in a disposable palace,
 including preview, per-source consent, inactive installation and explicit source activation.
 Agent integration registration and legacy adoption remain provider-specific tests.
@@ -51,8 +52,8 @@ They run once for every pull request and for every push to `main`, including mer
 trigger a second build.
 Each provider owns the build, packaging and release jobs in its repository;
 the release workflow reuses its provider-specific validation before publishing.
-Their Core matrix always includes the permanent `main` prerelease, whose source SHA is recorded in its release body,
-and can add exact plugin-capable stable versions via the `core-versions` JSON array.
+The `core_versions` answer defaults the static compatibility matrix to the permanent `main` prerelease,
+whose source SHA is recorded in its release body. Plugin-capable stable release trees can be offered as they appear.
 Every matrix leg runs source fixtures and the archive installation/activation smoke test; Core 0.4.1 predates plugin
 installation and is therefore not a compatible matrix entry.
 The generated workflows retain provider-specific scripts and metadata; Core owns the host download and integration checks.

@@ -14,6 +14,8 @@ jobs:
   validate:
     name: 🧪 Validate release archive
     uses: ./.github/workflows/ci.yaml
+    with:
+      tag: {% raw %}${{ inputs.tag }}{% endraw %}
 
   publish:
     needs: validate
@@ -50,9 +52,10 @@ jobs:
         env:
           GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
           TAG: {% raw %}${{ inputs.tag }}{% endraw %}
-          ARCHIVE: {% raw %}${{ needs.validate.outputs.archive }}{% endraw %}
         run: |
-          test -s "$ARCHIVE"
-          checksum="${ARCHIVE%.tar.gz}.sha256sum"
+          set -euo pipefail
+          archive="dist/${TAG%/v*}-${TAG##*/v}.tar.gz"
+          test -s "$archive"
+          checksum="${archive%.tar.gz}.sha256sum"
           test -s "$checksum"
-          gh release upload "$TAG" "$ARCHIVE" "$checksum" --clobber
+          gh release upload "$TAG" "$archive" "$checksum" --clobber

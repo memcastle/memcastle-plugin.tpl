@@ -6,8 +6,8 @@ codecov = true
 integration_template = "../memcastle-integration.tpl"
 
 [expect]
-files = ["plugin.toml", "manifest.toml", "modules/opencode/memcastle-integration.toml", "modules/opencode/dist/index.js", "modules/opencode/scripts/check_format.mjs", ".github/workflows/ci.yaml", ".github/codecov.yml"]
-absent = ["modules/opencode/memcastle-source.toml", "modules/opencode/scripts/check_format.py", ".github/workflows/plugin.yml", "scripts/package.py", "scripts/check_modules.py"]
+files = ["plugin.toml", "modules/opencode/memcastle-integration.toml", "modules/opencode/dist/index.js", "modules/opencode/scripts/check_format.mjs", ".github/workflows/ci.yaml", ".github/codecov.yml"]
+absent = ["manifest.toml", "modules/opencode/memcastle-source.toml", "modules/opencode/scripts/check_format.py", ".github/workflows/plugin.yml", "scripts/package.py", "scripts/check_modules.py"]
 
 [expect.contains]
 ".github/workflows/ci.yaml" = ["bun test --timeout 60000 --coverage", "report_type: test_results", "integration-"]
