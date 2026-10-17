@@ -20,12 +20,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: memcastle/memcastle-integration.tpl
-          ref: 04cc8455f056485cb08298a4a0af82909d314fe9
+          ref: d055d87eeba173e56ba0c84bc25c8ddeaeeaa0da
           path: memcastle-integration.tpl
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-wasip2
       - uses: Swatinem/rust-cache@v2
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - uses: memcastle/memcastle/.github/actions/core-binary@main
+        with:
+          version: main
       - name: Install the released GitTPL composition contract
         env:
           GH_TOKEN: ${{ github.token }}
@@ -36,8 +42,3 @@ jobs:
         working-directory: memcastle-plugin.tpl
         run: |
           "$RUNNER_TEMP/git-tpl" test
-      - name: Test project init, composition lock, update and package
-        working-directory: memcastle-plugin.tpl
-        env:
-          GIT_TPL_BIN: ${{ runner.temp }}/git-tpl
-        run: python3 scripts/check_composition.py --build

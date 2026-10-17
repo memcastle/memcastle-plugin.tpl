@@ -11,7 +11,7 @@ permissions:
 jobs:
   validate:
     name: 🧪 Validate {{ plugin_id }}
-    uses: ./.github/workflows/plugin.yml
+    uses: ./.github/workflows/ci.yaml
 
   publish:
     name: 🚀 Publish {{ plugin_id }}
@@ -24,12 +24,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - uses: memcastle/memcastle/.github/actions/core-binary@main
+        with:
+          version: main
       - name: Require a reviewed version tag on main
         env:
           GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
         run: |
           set -euo pipefail
-          expected="$(python3 -c 'import tomllib; p=tomllib.load(open("plugin.toml", "rb"))["plugin"]; print("{}/v{}".format(p["id"], p["version"]))')"
+          expected="$($MEMCASTLE_BIN plugin inspect plugin.toml --json | jq -r '.plugin | "\(.id)/v\(.version)"')"
           test "$GITHUB_REF_NAME" = "$expected" || { echo '::error::tag does not match plugin.toml'; exit 1; }
           git fetch origin main
           git merge-base --is-ancestor HEAD origin/main || { echo '::error::tag must be on main'; exit 1; }
@@ -46,4 +49,6 @@ jobs:
           ARCHIVE: {% raw %}${{ needs.validate.outputs.archive }}{% endraw %}
         run: |
           test -s "$ARCHIVE"
-          gh release create "$GITHUB_REF_NAME" "$ARCHIVE" --generate-notes
+          checksum="${ARCHIVE%.tar.gz}.sha256sum"
+          test -s "$checksum"
+          gh release create "$GITHUB_REF_NAME" "$ARCHIVE" "$checksum" --generate-notes

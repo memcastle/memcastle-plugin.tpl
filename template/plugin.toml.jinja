@@ -3,31 +3,24 @@ memcastle = "{{ memcastle }}"
 
 [plugin]
 id = "{{ plugin_id }}"
-version = "{{ version }}"
 provider = "{{ provider }}"
 description = "{{ description }}"
 repository = "https://github.com/{{ github_owner }}/{{ repository_name }}"
 license = "MIT"
 
-{# Packaging replaces placeholder hashes with actual module bytes after the source builds. #}
+{# The descriptor's release metadata lives in the generated manifest.toml. #}
 {% for id in sources %}
 [[modules]]
 id = "{{ id }}"
 type = "source"
-version = "{{ version }}"
 manifest = "modules/{{ id }}/memcastle-source.toml"
-manifest_sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
 entry = "modules/{{ id }}/source.wasm"
-sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
 contract = "0.4.0"
 {% endfor %}
 {% for id in integrations %}
 [[modules]]
 id = "{{ id }}"
 type = "integration"
-version = "{{ version }}"
 manifest = "modules/{{ id }}/memcastle-integration.toml"
-manifest_sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
 entry = "modules/{{ id }}/dist/index.js"
-sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
 {% endfor %}

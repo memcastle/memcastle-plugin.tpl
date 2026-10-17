@@ -22,19 +22,24 @@ An empty `sources` or `integrations` answer is valid.
 To add a module later, edit the recorded `sources` or `integrations` array in `.config/git.tpl.toml`, then run
 `git tpl update --defaults` and `git tpl merge`; the rendered ref remains append-only.
 To advance a child, test and commit it first, update its full SHA in `template.toml` and the template CI checkouts,
-run the parent composition test, then review the GitTPL diff in each provider repository before merging.
+run `git tpl test`, then review the GitTPL diff in each provider repository before merging.
 Existing projects retain their recorded commits until they explicitly run `git tpl update --defaults --json`,
 review `git tpl diff --json`, and run `git tpl merge --json`.
-`git tpl test` checks empty and mixed renderings, and `python3 scripts/check_composition.py --build` checks recorded
-commits, an added module, generated source builds and the packaged artifact using the released GitTPL 0.14 binary.
+`git tpl test` checks empty and mixed renders, typed modules, conditional CI and the pinned child composition.
+Set `MEMCASTLE_BIN` to a Core binary with `plugin package` and `plugin test` before running it locally;
+the empty and mixed cases build and smoke-test actual archives in disposable GitTPL sandboxes.
+The template CI downloads the verified Core `main` development binary and installs Rust, `wasm32-wasip2` and Bun.
 
-`python3 scripts/package.py` builds sources, computes every module artifact hash and produces a deterministic release archive.
-It remaps local Rust and Cargo source paths and ignores a local compiler wrapper so the reviewed component hashes match CI.
-Commit each generated source module's `Cargo.lock` after packaging; the provider CI requires them for reproducible builds.
+`ci.yaml` builds source components with reproducible Cargo flags and agent integrations with Bun, then runs
+`memcastle plugin package plugin.toml` to write a deterministic release archive with an in-archive
+the generated `manifest.toml` (descriptor metadata, version and every artifact checksum) and an external
+`dist/ID-VERSION.sha256sum` for the archive. `plugin.toml` is never changed or archived.
+Commit the regenerated `manifest.toml` and each source module's `Cargo.lock` for reproducible builds.
 The resulting archive is the installation unit; neither source modules nor integration modules are separately fetched from the plugin registry.
-The generated `scripts/check_modules.py` formats/lints/tests this provider's source and agent modules independently.
-`MEMCASTLE_BIN=/path/to/memcastle python3 scripts/smoke_install.py` validates the built archive in a disposable palace,
-including preview, per-source consent, inactive installation, explicit activation and local agent integration installation.
+The generated source and integration jobs format, lint and test each module separately.
+`memcastle plugin test dist/ID-VERSION.tar.gz` validates the archive in a disposable palace,
+including preview, per-source consent, inactive installation and explicit source activation.
+Agent integration registration and legacy adoption remain provider-specific tests.
 Generated validation workflows call MemCastle Core's shared artifact-testing workflow.
 They run once for every pull request and for every push to `main`, including merges; branch pushes to open PRs do not
 trigger a second build.
@@ -48,3 +53,8 @@ The generated workflows retain provider-specific scripts and metadata; Core owns
 Generated workflows follow Core's `main` branch, so improvements to shared validation need no template update.
 Core contract CI separately tests a generated project against the current Core checkout.
 Tag `PLUGIN_ID/vVERSION` on a reviewed `main` commit to publish just this provider, independently of Core releases.
+
+Set the `codecov` answer to `true` to enable coverage and test-result uploads in the same `ci.yaml` workflow.
+Each source and integration gets its own Cargo/Bun test job and Codecov flag, uploading actual LCOV and JUnit
+reports using GitHub OIDC. Manifest-only suites upload JUnit without inventing coverage.
+Enable the repository in Codecov for coverage and test-result PR statuses.
