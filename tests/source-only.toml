@@ -1,0 +1,13 @@
+[answers]
+plugin_id = "sample"
+sources = ["directory"]
+integrations = []
+codecov = true
+source_template = "../memcastle-source.tpl"
+
+[expect]
+files = [".github/workflows/ci.yaml", "modules/directory/Cargo.toml", "modules/directory/memcastle-source.toml", ".github/codecov.yml"]
+absent = ["scripts/package.py", "scripts/coverage.py", "tests/test_manifest.py", ".github/workflows/plugin.yml"]
+
+[expect.contains]
+".github/workflows/ci.yaml" = ["cargo llvm-cov nextest", "report_type: test_results", "plugin package plugin.toml"]

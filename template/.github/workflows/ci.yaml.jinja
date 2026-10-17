@@ -1,0 +1,265 @@
+name: 🧩 {{ plugin_id }} CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      archive:
+        description: Built release archive relative to the repository root
+        value: {% raw %}${{ jobs.package.outputs.archive }}{% endraw %}
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    name: 📋 Discover typed modules
+    runs-on: ubuntu-latest
+    outputs:
+      sources: {% raw %}${{ steps.modules.outputs.sources }}{% endraw %}
+      integrations: {% raw %}${{ steps.modules.outputs.integrations }}{% endraw %}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: memcastle/memcastle/.github/actions/core-binary@main
+        with:
+          version: main
+      - name: Inspect plugin manifest
+        id: modules
+        run: |
+          set -euo pipefail
+          "$MEMCASTLE_BIN" plugin inspect plugin.toml --json > "$RUNNER_TEMP/plugin.json"
+          echo "sources=$(jq -c '[.modules[] | select(.type == "source") | .id]' "$RUNNER_TEMP/plugin.json")" >> "$GITHUB_OUTPUT"
+          echo "integrations=$(jq -c '[.modules[] | select(.type == "integration") | .id]' "$RUNNER_TEMP/plugin.json")" >> "$GITHUB_OUTPUT"
+
+  source:
+    name: 🦀 Source {% raw %}${{ matrix.source }}{% endraw %}
+    needs: inventory
+    if: {% raw %}${{ needs.inventory.outputs.sources != '[]' }}{% endraw %}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+{% if codecov %}
+      id-token: write
+{% endif %}
+    strategy:
+      fail-fast: false
+      matrix:
+        source: {% raw %}${{ fromJSON(needs.inventory.outputs.sources) }}{% endraw %}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip2
+{% if codecov %}
+          components: llvm-tools-preview
+      - uses: taiki-e/install-action@cargo-llvm-cov
+      - uses: taiki-e/install-action@nextest
+{% endif %}
+      - uses: Swatinem/rust-cache@v2
+      - name: Check source formatting and warnings
+        env:
+          MODULE: {% raw %}${{ matrix.source }}{% endraw %}
+        run: |
+          cargo fmt --manifest-path "modules/$MODULE/Cargo.toml" --all -- --check
+          cargo clippy --manifest-path "modules/$MODULE/Cargo.toml" --locked --target wasm32-wasip2 -- -D warnings
+{% if codecov %}
+      - name: Run source tests with coverage and JUnit
+        id: source-tests
+        env:
+          MODULE: {% raw %}${{ matrix.source }}{% endraw %}
+        run: |
+          cd "modules/$MODULE"
+          cargo llvm-cov nextest --locked --config-file "$GITHUB_WORKSPACE/.config/nextest.toml" --no-tests=pass
+          if grep -q '<testcase' target/nextest/default/junit.xml; then
+            mkdir -p coverage
+            cargo llvm-cov report --lcov --output-path coverage/lcov.info
+            echo 'has_tests=true' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: codecov/codecov-action@v7
+        if: {% raw %}${{ steps.source-tests.outputs.has_tests == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}{% endraw %}
+        with:
+          files: modules/{% raw %}${{ matrix.source }}{% endraw %}/coverage/lcov.info
+          flags: source-{% raw %}${{ matrix.source }}{% endraw %}
+          use_oidc: true
+          fail_ci_if_error: true
+      - uses: codecov/codecov-action@v7
+        if: {% raw %}${{ steps.source-tests.outputs.has_tests == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}{% endraw %}
+        with:
+          files: modules/{% raw %}${{ matrix.source }}{% endraw %}/target/nextest/default/junit.xml
+          flags: source-{% raw %}${{ matrix.source }}{% endraw %}
+          report_type: test_results
+          use_oidc: true
+          fail_ci_if_error: true
+{% else %}
+      - name: Test source natively
+        env:
+          MODULE: {% raw %}${{ matrix.source }}{% endraw %}
+        run: cargo test --manifest-path "modules/$MODULE/Cargo.toml" --locked
+{% endif %}
+      - name: Build reproducible source component
+        env:
+          MODULE: {% raw %}${{ matrix.source }}{% endraw %}
+        run: |
+          set -euo pipefail
+          module_dir="$PWD/modules/$MODULE"
+          cargo_home="$(realpath "${CARGO_HOME:-$HOME/.cargo}")"
+          sysroot="$(rustc --print sysroot)"
+          commit="$(rustc --version --verbose | awk '/^commit-hash: / {print $2}')"
+          export CARGO_BUILD_RUSTC_WRAPPER=
+          unset RUSTFLAGS
+          export CARGO_ENCODED_RUSTFLAGS="--remap-path-prefix=$cargo_home=/cargo"$'\x1f'"--remap-path-prefix=$sysroot/lib/rustlib/src/rust=/rustc/$commit"$'\x1f'"--remap-path-prefix=$module_dir=/module"
+          cargo build --manifest-path "$module_dir/Cargo.toml" --locked --release --target wasm32-wasip2
+          crate="$(cargo metadata --no-deps --format-version 1 --manifest-path "$module_dir/Cargo.toml" | jq -er '.packages[0].targets[] | select(.kind | index("cdylib")) | .name')"
+          cp "$module_dir/target/wasm32-wasip2/release/$crate.wasm" "$module_dir/source.wasm"
+          mkdir -p "$module_dir/dist"
+          cp "$module_dir/source.wasm" "$module_dir/dist/source.wasm"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: source-{% raw %}${{ matrix.source }}{% endraw %}
+          path: |
+            modules/{% raw %}${{ matrix.source }}{% endraw %}/source.wasm
+            modules/{% raw %}${{ matrix.source }}{% endraw %}/dist/source.wasm
+          if-no-files-found: error
+
+  integration:
+    name: 🔌 Integration {% raw %}${{ matrix.integration }}{% endraw %}
+    needs: inventory
+    if: {% raw %}${{ needs.inventory.outputs.integrations != '[]' }}{% endraw %}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+{% if codecov %}
+      id-token: write
+{% endif %}
+    strategy:
+      fail-fast: false
+      matrix:
+        integration: {% raw %}${{ fromJSON(needs.inventory.outputs.integrations) }}{% endraw %}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - uses: memcastle/memcastle/.github/actions/core-binary@main
+        with:
+          version: main
+      - name: Format, lint and install integration dependencies
+        if: {% raw %}${{ hashFiles(format('modules/{0}/package.json', matrix.integration)) != '' }}{% endraw %}
+        env:
+          MODULE: {% raw %}${{ matrix.integration }}{% endraw %}
+        run: |
+          cd "modules/$MODULE"
+          if [[ -f bun.lock || -f bun.lockb ]]; then bun install --frozen-lockfile; else bun install; fi
+          bun run format:check
+          bun run lint
+{% if codecov %}
+      - name: Run integration tests with coverage and JUnit
+        if: {% raw %}${{ hashFiles(format('modules/{0}/package.json', matrix.integration)) != '' }}{% endraw %}
+        env:
+          MODULE: {% raw %}${{ matrix.integration }}{% endraw %}
+        run: |
+          cd "modules/$MODULE"
+          bun test --coverage --coverage-reporter=lcov --reporter=junit --reporter-outfile=junit.xml
+      - uses: codecov/codecov-action@v7
+        if: {% raw %}${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && hashFiles(format('modules/{0}/coverage/lcov.info', matrix.integration)) != '' }}{% endraw %}
+        with:
+          files: modules/{% raw %}${{ matrix.integration }}{% endraw %}/coverage/lcov.info
+          flags: integration-{% raw %}${{ matrix.integration }}{% endraw %}
+          use_oidc: true
+          fail_ci_if_error: true
+      - uses: codecov/codecov-action@v7
+        if: {% raw %}${{ hashFiles(format('modules/{0}/junit.xml', matrix.integration)) != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}{% endraw %}
+        with:
+          files: modules/{% raw %}${{ matrix.integration }}{% endraw %}/junit.xml
+          flags: integration-{% raw %}${{ matrix.integration }}{% endraw %}
+          report_type: test_results
+          use_oidc: true
+          fail_ci_if_error: true
+{% else %}
+      - name: Test integration
+        if: {% raw %}${{ hashFiles(format('modules/{0}/package.json', matrix.integration)) != '' }}{% endraw %}
+        env:
+          MODULE: {% raw %}${{ matrix.integration }}{% endraw %}
+        run: |
+          cd "modules/$MODULE"
+          bun test
+{% endif %}
+      - name: Build integration assets
+        if: {% raw %}${{ hashFiles(format('modules/{0}/package.json', matrix.integration)) != '' }}{% endraw %}
+        env:
+          MODULE: {% raw %}${{ matrix.integration }}{% endraw %}
+        run: |
+          cd "modules/$MODULE"
+          bun run build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: integration-{% raw %}${{ matrix.integration }}{% endraw %}
+          path: modules/{% raw %}${{ matrix.integration }}{% endraw %}/dist/
+          if-no-files-found: error
+
+  package:
+    name: 🏗️ Package {{ plugin_id }}
+    needs: [inventory, source, integration]
+    if: >-
+      {% raw %}${{ always() && needs.inventory.result == 'success'
+        && (needs.source.result == 'success' || needs.source.result == 'skipped')
+        && (needs.integration.result == 'success' || needs.integration.result == 'skipped') }}{% endraw %}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      archive: {% raw %}${{ steps.archive.outputs.path }}{% endraw %}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: memcastle/memcastle/.github/actions/core-binary@main
+        with:
+          version: main
+      - name: Download built module artifacts
+        env:
+          GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
+          SOURCES: {% raw %}${{ needs.inventory.outputs.sources }}{% endraw %}
+          INTEGRATIONS: {% raw %}${{ needs.inventory.outputs.integrations }}{% endraw %}
+        run: |
+          set -euo pipefail
+          for id in $(jq -r '.[]' <<< "$SOURCES"); do
+            gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "source-$id" --dir "modules/$id"
+          done
+          for id in $(jq -r '.[]' <<< "$INTEGRATIONS"); do
+            gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "integration-$id" --dir "modules/$id/dist"
+          done
+      - name: Check source locks, package and reviewed digests
+        id: archive
+        run: |
+          set -euo pipefail
+          for manifest in modules/*/memcastle-source.toml; do
+            if [[ -f "$manifest" ]]; then
+              lock="$(dirname "$manifest")/Cargo.lock"
+              git ls-files --error-unmatch "$lock" >/dev/null || { echo "::error::commit $lock"; exit 1; }
+            fi
+          done
+          "$MEMCASTLE_BIN" plugin package plugin.toml --json > "$RUNNER_TEMP/plugin-package.json"
+          git diff --exit-code -- plugin.toml || { echo '::error::commit reviewed plugin.toml digests'; exit 1; }
+          path="$(jq -r .archive "$RUNNER_TEMP/plugin-package.json")"
+          test -s "$path"
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: plugin-package
+          path: |
+            dist/*.tar.gz
+            modules/*/source.wasm
+            modules/*/dist/source.wasm
+          if-no-files-found: error
+
+  validate:
+    name: 🧪 Check with Core
+    needs: package
+    uses: memcastle/memcastle/.github/workflows/plugin-validation.yaml@main
+    with:
+      artifact-name: plugin-package
+      archive-path: {% raw %}${{ needs.package.outputs.archive }}{% endraw %}
+      core-versions: '[]'

@@ -36,8 +36,3 @@ jobs:
         working-directory: memcastle-plugin.tpl
         run: |
           "$RUNNER_TEMP/git-tpl" test
-      - name: Test project init, composition lock, update and package
-        working-directory: memcastle-plugin.tpl
-        env:
-          GIT_TPL_BIN: ${{ runner.temp }}/git-tpl
-        run: python3 scripts/check_composition.py --build

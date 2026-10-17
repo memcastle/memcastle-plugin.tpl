@@ -4,5 +4,5 @@ sources = []
 integrations = []
 
 [expect]
-files = ["plugin.toml", "README.md", "scripts/package.py", ".github/workflows/plugin.yml", ".github/workflows/release.yml"]
-absent = ["modules/one/memcastle-source.toml"]
+files = ["plugin.toml", "README.md", ".github/workflows/ci.yaml", ".github/workflows/release.yml", ".config/nextest.toml"]
+absent = ["modules/one/memcastle-source.toml", ".github/workflows/coverage.yml", "scripts/package.py", "scripts/check_modules.py", "scripts/smoke_install.py", "tests/test_manifest.py", ".github/codecov.yml"]
