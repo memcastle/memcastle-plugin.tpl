@@ -10,6 +10,9 @@ integration_template = "../memcastle-integration.tpl"
 files = ["plugin.toml", "manifest.toml", "modules/jira/memcastle-source.toml", "modules/confluence/src/lib.rs", "modules/assistant/memcastle-integration.toml", "modules/assistant/dist/index.js", "modules/assistant/scripts/check_format.mjs", ".github/workflows/ci.yaml", ".github/codecov.yml", ".config/nextest.toml"]
 absent = ["modules/assistant/scripts/check_format.py", ".github/workflows/plugin.yml", ".github/workflows/coverage.yml", "scripts/coverage.py", "scripts/package.py", "scripts/smoke_install.py", "tests/test_manifest.py"]
 
+[commands]
+rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh example 0.1.0"]
+
 [expect.contains]
 "plugin.toml" = ['id = "jira"', 'id = "confluence"', 'id = "assistant"']
 "manifest.toml" = ['version = "0.1.0"', 'id = "assistant"']

@@ -26,6 +26,9 @@ run `git tpl test`, then review the GitTPL diff in each provider repository befo
 Existing projects retain their recorded commits until they explicitly run `git tpl update --defaults --json`,
 review `git tpl diff --json`, and run `git tpl merge --json`.
 `git tpl test` checks empty and mixed renders, typed modules, conditional CI and the pinned child composition.
+Set `MEMCASTLE_BIN` to a Core binary with `plugin package` and `plugin test` before running it locally;
+the empty and mixed cases build and smoke-test actual archives in disposable GitTPL sandboxes.
+The template CI downloads the verified Core `main` development binary and installs Rust, `wasm32-wasip2` and Bun.
 
 `ci.yaml` builds source components with reproducible Cargo flags and agent integrations with Bun, then runs
 `memcastle plugin package plugin.toml` to write a deterministic release archive with an in-archive
