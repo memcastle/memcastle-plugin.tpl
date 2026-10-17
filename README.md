@@ -2,7 +2,7 @@
 
 One repository produces one independently versioned plugin, with zero or more source and integration modules.
 The plugin template composes the independently maintained `memcastle-source.tpl` and `memcastle-integration.tpl` repositories.
-Each child is pinned to a reviewed commit in `template.toml`; `.config/git.tpl.toml` records those exact revisions.
+It follows each child's `main` branch; each provider's `.config/git.tpl.toml` records the exact resolved commits.
 GitTPL 0.14 or newer is required for the `type = "list"` questions and `[[compose]]` declarations.
 
 ```sh
@@ -15,17 +15,17 @@ git tpl init "$PWD" ../my-provider --init --answer plugin_id=my-provider \
 ```
 
 For a shared provider repository, start with `https://github.com/memcastle/memcastle-plugin.tpl` and `--trust`.
-The defaults fetch the pinned published child commits; the local-path example above records those machine-specific paths
+The defaults fetch the published child `main` branches; the local-path example above records machine-specific paths
 instead and never silently changes them to the published URLs.
 
 An empty `sources` or `integrations` answer is valid.
 To add a module later, edit the recorded `sources` or `integrations` array in `.config/git.tpl.toml`, then run
 `git tpl update --defaults` and `git tpl merge`; the rendered ref remains append-only.
-To advance a child, test and commit it first, update its full SHA in `template.toml` and the template CI checkouts,
-run `git tpl test`, then review the GitTPL diff in each provider repository before merging.
+When a child `main` branch advances, test the composed template and review the GitTPL diff in each provider repository
+before merging its new rendering; a child update is never silently applied to an existing plugin.
 Existing projects retain their recorded commits until they explicitly run `git tpl update --defaults --json`,
 review `git tpl diff --json`, and run `git tpl merge --json`.
-`git tpl test` checks empty and mixed renders, typed modules, conditional CI and the pinned child composition.
+`git tpl test` checks empty and mixed renders, typed modules, conditional CI and child composition.
 `core_versions` selects a static Core validation matrix. It defaults to `main`; plugin-capable minor/major release
 trees can be offered when stable binaries are published, with the Core setup action resolving their latest patch.
 Put a Core binary with `plugin package` and `plugin test` on PATH before running it locally;

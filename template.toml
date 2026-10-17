@@ -72,7 +72,7 @@ default = []
 item_pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"
 item_message = "use lowercase words, numbers and hyphens for each integration ID"
 
-# Child revisions advance only after their generated modules pass their own template CI.
+# Each rendering records the resolved child-main commits for reviewable provider updates.
 [questions.source_template]
 type = "string"
 prompt = "Source module template repository"
@@ -85,10 +85,10 @@ default = "https://github.com/memcastle/memcastle-integration.tpl"
 
 [[compose]]
 source = "{{ source_template }}"
-ref = "5f2a8350bd82c49ec2370d70c83019ff6fc5a822"
+ref = "main"
 from = "sources"
 
 [[compose]]
 source = "{{ integration_template }}"
-ref = "d055d87eeba173e56ba0c84bc25c8ddeaeeaa0da"
+ref = "main"
 from = "integrations"
