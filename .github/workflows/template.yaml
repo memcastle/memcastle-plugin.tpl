@@ -37,8 +37,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download 0.14.0 --repo noirbizarre/git-tpl --pattern 'git-tpl_0.14.0_linux-amd64.tar.gz' --dir "$RUNNER_TEMP"
-          tar -xzf "$RUNNER_TEMP/git-tpl_0.14.0_linux-amd64.tar.gz" -C "$RUNNER_TEMP" ./git-tpl
+          gh release download 0.14.3 --repo noirbizarre/git-tpl --pattern 'git-tpl_0.14.3_linux-amd64.tar.gz' --dir "$RUNNER_TEMP"
+          tar -xzf "$RUNNER_TEMP/git-tpl_0.14.3_linux-amd64.tar.gz" -C "$RUNNER_TEMP" ./git-tpl
       - name: Test empty and mixed rendering
         working-directory: memcastle-plugin.tpl
         run: |

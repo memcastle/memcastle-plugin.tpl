@@ -3,7 +3,7 @@
 One repository produces one independently versioned plugin, with zero or more source and integration modules.
 The plugin template composes the independently maintained `memcastle-source.tpl` and `memcastle-integration.tpl` repositories.
 Each child is pinned to a reviewed commit in `template.toml`; `.config/git.tpl.toml` records those exact revisions.
-GitTPL 0.14 or newer is required for the `type = "list"` questions and `[[compose]]` declarations.
+GitTPL 0.14.3 or newer is required for per-composition `path` settings that separate the typed module roots.
 
 ```sh
 git tpl --json questions "$PWD"
