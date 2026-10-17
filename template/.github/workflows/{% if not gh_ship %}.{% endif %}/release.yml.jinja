@@ -1,4 +1,4 @@
-name: 📦 Publish {{ plugin_id }}
+name: 📦 Publish release
 
 on:
   push:
@@ -10,11 +10,11 @@ permissions:
 
 jobs:
   validate:
-    name: 🧪 Validate {{ plugin_id }}
+    name: 🧪 Validate release
     uses: ./.github/workflows/ci.yaml
 
   publish:
-    name: 🚀 Publish {{ plugin_id }}
+    name: 🚀 Publish
     needs: validate
     runs-on: ubuntu-latest
     permissions:

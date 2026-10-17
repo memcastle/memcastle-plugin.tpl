@@ -1,4 +1,4 @@
-name: 🧩 {{ plugin_id }} CI
+name: 🧩 CI
 
 on:
   pull_request:
@@ -202,7 +202,7 @@ jobs:
           include-hidden-files: true
 
   package:
-    name: 🏗️ Package {{ plugin_id }}
+    name: 🏗️ Package
     needs: [inventory, source, integration]
     if: >-
       {% raw %}${{ always() && needs.inventory.result == 'success'
