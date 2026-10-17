@@ -33,13 +33,13 @@ jobs:
       - uses: memcastle/memcastle@main
         with:
           version: main
-      - name: Install the released GitTPL composition contract
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download 0.14.3 --repo noirbizarre/git-tpl --pattern 'git-tpl_0.14.3_linux-amd64.tar.gz' --dir "$RUNNER_TEMP"
-          tar -xzf "$RUNNER_TEMP/git-tpl_0.14.3_linux-amd64.tar.gz" -C "$RUNNER_TEMP" ./git-tpl
+      - uses: noirbizarre/git-tpl@main
+        with:
+          version: 0.14.3
       - name: Test empty and mixed rendering
         working-directory: memcastle-plugin.tpl
         run: |
-          mise exec git-cliff@2.12.0 -- "$RUNNER_TEMP/git-tpl" test
+          set -euo pipefail
+          result="$(mise exec git-cliff@2.12.0 -- git tpl test --json)"
+          jq . <<< "$result"
+          jq -e '.summary.failed == 0' <<< "$result" >/dev/null
