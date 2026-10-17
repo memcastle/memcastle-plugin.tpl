@@ -53,4 +53,6 @@ jobs:
           ARCHIVE: {% raw %}${{ needs.validate.outputs.archive }}{% endraw %}
         run: |
           test -s "$ARCHIVE"
-          gh release upload "$TAG" "$ARCHIVE" --clobber
+          checksum="${ARCHIVE%.tar.gz}.sha256sum"
+          test -s "$checksum"
+          gh release upload "$TAG" "$ARCHIVE" "$checksum" --clobber
