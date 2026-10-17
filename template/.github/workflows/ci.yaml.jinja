@@ -1,4 +1,4 @@
-name: 🧩 {{ plugin_id }} CI
+name: 🧩 CI
 
 on:
   pull_request:
@@ -6,38 +6,20 @@ on:
     branches: [main]
   workflow_dispatch:
   workflow_call:
-    outputs:
-      archive:
-        description: Built release archive relative to the repository root
-        value: {% raw %}${{ jobs.package.outputs.archive }}{% endraw %}
+    inputs:
+      tag:
+        description: Reviewed release tag to build rather than the caller's branch commit
+        type: string
+        required: false
+        default: ''
 
 permissions:
   contents: read
 
 jobs:
-  inventory:
-    name: 📋 Discover typed modules
-    runs-on: ubuntu-latest
-    outputs:
-      sources: {% raw %}${{ steps.modules.outputs.sources }}{% endraw %}
-      integrations: {% raw %}${{ steps.modules.outputs.integrations }}{% endraw %}
-    steps:
-      - uses: actions/checkout@v7
-      - uses: memcastle/memcastle/.github/actions/core-binary@main
-        with:
-          version: main
-      - name: Inspect plugin manifest
-        id: modules
-        run: |
-          set -euo pipefail
-          "$MEMCASTLE_BIN" plugin inspect plugin.toml --json > "$RUNNER_TEMP/plugin.json"
-          echo "sources=$(jq -c '[.modules[] | select(.type == "source") | .id]' "$RUNNER_TEMP/plugin.json")" >> "$GITHUB_OUTPUT"
-          echo "integrations=$(jq -c '[.modules[] | select(.type == "integration") | .id]' "$RUNNER_TEMP/plugin.json")" >> "$GITHUB_OUTPUT"
-
+{% if sources %}
   source:
     name: 🦀 Source {% raw %}${{ matrix.source }}{% endraw %}
-    needs: inventory
-    if: {% raw %}${{ needs.inventory.outputs.sources != '[]' }}{% endraw %}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -47,9 +29,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        source: {% raw %}${{ fromJSON(needs.inventory.outputs.sources) }}{% endraw %}
+        source: [{% for id in sources %}"{{ id }}"{% if not loop.last %}, {% endif %}{% endfor %}]
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: {% raw %}${{ inputs.tag || github.sha }}{% endraw %}
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-wasip2
@@ -119,15 +103,13 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: source-{% raw %}${{ matrix.source }}{% endraw %}
-          path: |
-            sources/{% raw %}${{ matrix.source }}{% endraw %}/source.wasm
-            sources/{% raw %}${{ matrix.source }}{% endraw %}/dist/source.wasm
+          path: sources/{% raw %}${{ matrix.source }}{% endraw %}/source.wasm
           if-no-files-found: error
 
+{% endif %}
+{% if integrations %}
   integration:
     name: 🔌 Integration {% raw %}${{ matrix.integration }}{% endraw %}
-    needs: inventory
-    if: {% raw %}${{ needs.inventory.outputs.integrations != '[]' }}{% endraw %}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -137,13 +119,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        integration: {% raw %}${{ fromJSON(needs.inventory.outputs.integrations) }}{% endraw %}
+        integration: [{% for id in integrations %}"{{ id }}"{% if not loop.last %}, {% endif %}{% endfor %}]
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: {% raw %}${{ inputs.tag || github.sha }}{% endraw %}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: '1.4.2'
-      - uses: memcastle/memcastle/.github/actions/core-binary@main
+      - uses: memcastle/memcastle@main
         with:
           version: main
       - name: Format, lint and install integration dependencies
@@ -201,58 +185,38 @@ jobs:
           if-no-files-found: error
           include-hidden-files: true
 
+{% endif %}
   package:
-    name: 🏗️ Package {{ plugin_id }}
-    needs: [inventory, source, integration]
-    if: >-
-      {% raw %}${{ always() && needs.inventory.result == 'success'
-        && (needs.source.result == 'success' || needs.source.result == 'skipped')
-        && (needs.integration.result == 'success' || needs.integration.result == 'skipped') }}{% endraw %}
+    name: 🏗️ Package
+{% if sources or integrations %}
+    needs: [{% if sources %}source{% endif %}{% if sources and integrations %}, {% endif %}{% if integrations %}integration{% endif %}]
+{% endif %}
     runs-on: ubuntu-latest
     permissions:
-      actions: read
       contents: read
-    outputs:
-      archive: {% raw %}${{ steps.archive.outputs.path }}{% endraw %}
     steps:
       - uses: actions/checkout@v7
-      - uses: memcastle/memcastle/.github/actions/core-binary@main
+        with:
+          ref: {% raw %}${{ inputs.tag || github.sha }}{% endraw %}
+          fetch-depth: 0
+          fetch-tags: true
+      - uses: memcastle/memcastle@main
         with:
           version: main
-      - name: Download built module artifacts
-        env:
-          GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
-          SOURCES: {% raw %}${{ needs.inventory.outputs.sources }}{% endraw %}
-          INTEGRATIONS: {% raw %}${{ needs.inventory.outputs.integrations }}{% endraw %}
-        run: |
-          set -euo pipefail
-          for id in $(jq -r '.[]' <<< "$SOURCES"); do
-            gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "source-$id" --dir "sources/$id"
-          done
-          for id in $(jq -r '.[]' <<< "$INTEGRATIONS"); do
-            gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "integration-$id" --dir "integrations/$id/dist"
-          done
-      - name: Check source locks and package immutable plugin descriptor
-        id: archive
-        run: |
-          set -euo pipefail
-          for manifest in sources/*/memcastle-source.toml; do
-            if [[ -f "$manifest" ]]; then
-              lock="$(dirname "$manifest")/Cargo.lock"
-              git ls-files --error-unmatch "$lock" >/dev/null || { echo "::error::commit $lock"; exit 1; }
-            fi
-          done
-          "$MEMCASTLE_BIN" plugin package plugin.toml --json > "$RUNNER_TEMP/plugin-package.json"
-          git diff --exit-code -- plugin.toml || { echo '::error::packaging must not change plugin.toml'; exit 1; }
-          git diff --exit-code -- manifest.toml || { echo '::error::commit the regenerated manifest.toml'; exit 1; }
-          path="$(jq -r .archive "$RUNNER_TEMP/plugin-package.json")"
-          checksum="$(jq -r .checksum "$RUNNER_TEMP/plugin-package.json")"
-          test -s "$path"
-          test -s "$checksum"
-          tar -xOzf "$path" manifest.toml | grep '^\[plugin\]$' >/dev/null
-          if tar -tf "$path" | grep -q '^plugin.toml$'; then echo '::error::the descriptor must not be archived'; exit 1; fi
-          (cd "$(dirname "$path")" && sha256sum --check "$(basename "$checksum")")
-          echo "path=$path" >> "$GITHUB_OUTPUT"
+{% for id in sources %}
+      - uses: actions/download-artifact@v8
+        with:
+          name: source-{{ id }}
+          path: sources/{{ id }}/
+{% endfor %}
+{% for id in integrations %}
+      - uses: actions/download-artifact@v8
+        with:
+          name: integration-{{ id }}
+          path: integrations/{{ id }}/dist/
+{% endfor %}
+      - name: Package plugin
+        run: memcastle plugin package
       - uses: actions/upload-artifact@v7
         with:
           name: plugin-package
@@ -260,15 +224,18 @@ jobs:
             dist/*.tar.gz
             dist/*.sha256sum
             sources/*/source.wasm
-            sources/*/dist/source.wasm
           if-no-files-found: error
 
   validate:
     name: 🧪 Check with Core
     needs: package
     if: {% raw %}${{ always() && needs.package.result == 'success' }}{% endraw %}
+    strategy:
+      fail-fast: false
+      matrix:
+        core: [{% if core_versions %}{% for core_ref in core_versions %}"{{ core_ref }}"{% if not loop.last %}, {% endif %}{% endfor %}{% else %}"main"{% endif %}]
     uses: memcastle/memcastle/.github/workflows/plugin-validation.yaml@main
     with:
       artifact-name: plugin-package
-      archive-path: {% raw %}${{ needs.package.outputs.archive }}{% endraw %}
-      core-versions: '[]'
+      core-version: {% raw %}${{ matrix.core }}{% endraw %}
+      plugin-ref: {% raw %}${{ inputs.tag }}{% endraw %}

@@ -1,5 +1,7 @@
 format = 1
 memcastle = "{{ memcastle }}"
+# Add shared support files or directories here; integration manifests supply their own assets.
+artifacts = []
 
 [plugin]
 id = "{{ plugin_id }}"
@@ -8,7 +10,7 @@ description = "{{ description }}"
 repository = "https://github.com/{{ github_owner }}/{{ repository_name }}"
 license = "MIT"
 
-{# The descriptor's release metadata lives in the generated manifest.toml. #}
+{# Release versions and checksums exist only in the packaged archive. #}
 {% for id in sources %}
 [[modules]]
 id = "{{ id }}"

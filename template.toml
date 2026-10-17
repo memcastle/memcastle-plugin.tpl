@@ -18,11 +18,6 @@ type = "string"
 prompt = "Provider family"
 default = "{{ plugin_id }}"
 
-[questions.version]
-type = "string"
-prompt = "Plugin version"
-default = "0.1.0"
-
 [questions.memcastle]
 type = "string"
 prompt = "Supported MemCastle versions"
@@ -42,6 +37,13 @@ default = "memcastle-{{ plugin_id }}"
 type = "boolean"
 prompt = "Upload module test coverage to Codecov?"
 default = false
+
+[questions.core_versions]
+type = "multi_choice"
+prompt = "Core releases to validate"
+help = "Select main and, when available, plugin-capable minor/major release trees (latest stable patch)"
+choices = ["main"]
+default = ["main"]
 
 [questions.gh_ship]
 type = "boolean"
@@ -70,7 +72,7 @@ default = []
 item_pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"
 item_message = "use lowercase words, numbers and hyphens for each integration ID"
 
-# Child revisions advance only after their generated modules pass their own template CI.
+# Each rendering records the resolved child-main commits for reviewable provider updates.
 [questions.source_template]
 type = "string"
 prompt = "Source module template repository"
@@ -83,12 +85,12 @@ default = "https://github.com/memcastle/memcastle-integration.tpl"
 
 [[compose]]
 source = "{{ source_template }}"
-ref = "5f2a8350bd82c49ec2370d70c83019ff6fc5a822"
+ref = "main"
 from = "sources"
 path = "sources"
 
 [[compose]]
 source = "{{ integration_template }}"
-ref = "d055d87eeba173e56ba0c84bc25c8ddeaeeaa0da"
+ref = "main"
 from = "integrations"
 path = "integrations"

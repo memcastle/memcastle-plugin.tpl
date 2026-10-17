@@ -7,15 +7,16 @@ source_template = "../memcastle-source.tpl"
 integration_template = "../memcastle-integration.tpl"
 
 [expect]
-files = ["plugin.toml", "manifest.toml", "sources/jira/memcastle-source.toml", "sources/confluence/src/lib.rs", "integrations/assistant/memcastle-integration.toml", "integrations/assistant/dist/index.js", "integrations/assistant/scripts/check_format.mjs", ".github/workflows/ci.yaml", ".github/codecov.yml", ".config/nextest.toml"]
-absent = ["integrations/assistant/scripts/check_format.py", ".github/workflows/plugin.yml", ".github/workflows/coverage.yml", "scripts/coverage.py", "scripts/package.py", "scripts/smoke_install.py", "tests/test_manifest.py"]
+files = ["plugin.toml", "sources/jira/memcastle-source.toml", "sources/confluence/src/lib.rs", "integrations/assistant/memcastle-integration.toml", "integrations/assistant/dist/index.js", "integrations/assistant/scripts/check_format.mjs", ".github/workflows/ci.yaml", ".github/codecov.yml", ".config/nextest.toml"]
+absent = ["manifest.toml", "integrations/assistant/scripts/check_format.py", ".github/workflows/plugin.yml", ".github/workflows/coverage.yml", "scripts/coverage.py", "scripts/package.py", "scripts/smoke_install.py", "tests/test_manifest.py"]
 
 [commands]
-rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh example 0.1.0"]
+rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh example"]
 
 [expect.contains]
 "plugin.toml" = ['id = "jira"', 'id = "confluence"', 'id = "assistant"']
-"manifest.toml" = ['version = "0.1.0"', 'id = "assistant"']
+".github/workflows/ci.yaml" = ["name: source-jira", "path: sources/jira/", "name: source-confluence", "name: integration-assistant", "path: integrations/assistant/dist/"]
 
 [expect.lacks]
 "plugin.toml" = ["version =", "manifest_sha256 =", "sha256 ="]
+".github/workflows/ci.yaml" = ["gh run download", "inventory:"]

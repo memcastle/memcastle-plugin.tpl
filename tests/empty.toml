@@ -2,13 +2,17 @@
 plugin_id = "empty"
 sources = []
 integrations = []
+core_versions = []
 
 [expect]
-files = ["plugin.toml", "manifest.toml", "README.md", ".github/workflows/ci.yaml", ".github/workflows/release.yml", ".config/nextest.toml"]
-absent = ["sources/one/memcastle-source.toml", "integrations/one/memcastle-integration.toml", ".github/workflows/coverage.yml", "scripts/package.py", "scripts/check_modules.py", "scripts/smoke_install.py", "tests/test_manifest.py", ".github/codecov.yml"]
+files = ["plugin.toml", "README.md", ".github/workflows/ci.yaml", ".github/workflows/release.yml", ".config/nextest.toml"]
+absent = ["manifest.toml", "sources/one/memcastle-source.toml", "integrations/one/memcastle-integration.toml", ".github/workflows/coverage.yml", "scripts/package.py", "scripts/check_modules.py", "scripts/smoke_install.py", "tests/test_manifest.py", ".github/codecov.yml"]
 
 [commands]
-rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh empty 0.1.0"]
+rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh empty"]
 
 [expect.lacks]
 "plugin.toml" = ["version =", "sha256 =", "manifest_sha256 ="]
+
+[expect.contains]
+".github/workflows/ci.yaml" = ['core: ["main"]', 'core-version: ${{ matrix.core }}']

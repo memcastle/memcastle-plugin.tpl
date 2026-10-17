@@ -15,12 +15,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: memcastle/memcastle-source.tpl
-          ref: 5f2a8350bd82c49ec2370d70c83019ff6fc5a822
+          ref: main
           path: memcastle-source.tpl
       - uses: actions/checkout@v4
         with:
           repository: memcastle/memcastle-integration.tpl
-          ref: d055d87eeba173e56ba0c84bc25c8ddeaeeaa0da
+          ref: main
           path: memcastle-integration.tpl
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -30,7 +30,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: '1.4.2'
-      - uses: memcastle/memcastle/.github/actions/core-binary@main
+      - uses: memcastle/memcastle@main
         with:
           version: main
       - name: Install the released GitTPL composition contract

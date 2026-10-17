@@ -6,8 +6,8 @@ codecov = true
 source_template = "../memcastle-source.tpl"
 
 [expect]
-files = [".github/workflows/ci.yaml", "manifest.toml", "sources/directory/Cargo.toml", "sources/directory/memcastle-source.toml", ".github/codecov.yml"]
-absent = ["integrations/directory/memcastle-integration.toml", "scripts/package.py", "scripts/coverage.py", "tests/test_manifest.py", ".github/workflows/plugin.yml"]
+files = [".github/workflows/ci.yaml", "sources/directory/Cargo.toml", "sources/directory/memcastle-source.toml", ".github/codecov.yml"]
+absent = ["manifest.toml", "integrations/directory/memcastle-integration.toml", "scripts/package.py", "scripts/coverage.py", "tests/test_manifest.py", ".github/workflows/plugin.yml"]
 
 [expect.contains]
-".github/workflows/ci.yaml" = ["cargo llvm-cov nextest", "report_type: test_results", "plugin package plugin.toml"]
+".github/workflows/ci.yaml" = ["cargo llvm-cov nextest", "report_type: test_results", "memcastle plugin package"]
