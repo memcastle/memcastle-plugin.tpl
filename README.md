@@ -3,7 +3,7 @@
 One repository produces one independently versioned plugin, with zero or more source and integration modules.
 The plugin template composes the independently maintained `memcastle-source.tpl` and `memcastle-integration.tpl` repositories.
 It follows each child's `main` branch; each provider's `.config/git.tpl.toml` records the exact resolved commits.
-GitTPL 0.14.2 or newer is required to compose typed source/integration modules with a shared ID and directory.
+GitTPL 0.14.3 or newer is required for per-composition `path` settings that separate the typed module roots.
 
 ```sh
 git tpl --json questions "$PWD"
@@ -19,8 +19,9 @@ The defaults fetch the published child `main` branches; the local-path example a
 instead and never silently changes them to the published URLs.
 
 An empty `sources` or `integrations` answer is valid.
-If both lists contain the same ID, their child templates render distinct source and integration documentation paths;
-each module keeps its independent manifest and lifecycle.
+Source modules render in `sources/<id>/` and agent integrations in `integrations/<id>/`.
+The same ID may appear in both lists without colliding; each has its own manifest, build job and lifecycle.
+Existing providers using `modules/<id>/` update through an ordinary GitTPL diff and keep their implementations.
 To add a module later, edit the recorded `sources` or `integrations` array in `.config/git.tpl.toml`, then run
 `git tpl update --defaults` and `git tpl merge`; the rendered ref remains append-only.
 When a child `main` branch advances, test the composed template and review the GitTPL diff in each provider repository
@@ -33,6 +34,8 @@ trees can be offered when stable binaries are published, with the Core setup act
 Put a Core binary with `plugin package` and `plugin test` on PATH before running it locally;
 the empty and mixed cases build and smoke-test actual archives in disposable GitTPL sandboxes.
 The template CI downloads the verified Core `main` development binary and installs Rust, `wasm32-wasip2` and Bun.
+The Core version used for validation must support both typed module roots; earlier released plugin archives under
+`modules/<id>/` remain installable.
 
 `ci.yaml` builds source components with reproducible Cargo flags and agent integrations with Bun, then runs
 `memcastle plugin package` to write a deterministic release archive containing the generated

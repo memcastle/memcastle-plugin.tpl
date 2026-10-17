@@ -7,8 +7,8 @@ source_template = "../memcastle-source.tpl"
 integration_template = "../memcastle-integration.tpl"
 
 [expect]
-files = ["plugin.toml", "modules/pi/memcastle-source.toml", "modules/pi/memcastle-integration.toml", "modules/pi/README.md", "modules/pi/INTEGRATION.md", "modules/pi/dist/index.js", ".github/workflows/ci.yaml"]
-absent = ["manifest.toml", "modules/pi/scripts/check_format.py", ".github/workflows/plugin.yml"]
+files = ["plugin.toml", "sources/pi/memcastle-source.toml", "integrations/pi/memcastle-integration.toml", "sources/pi/README.md", "integrations/pi/README.md", "integrations/pi/dist/index.js", ".github/workflows/ci.yaml"]
+absent = ["manifest.toml", "modules/pi/memcastle-source.toml", "integrations/pi/scripts/check_format.py", ".github/workflows/plugin.yml"]
 
 [expect.contains]
 "plugin.toml" = ['type = "source"', 'type = "integration"']

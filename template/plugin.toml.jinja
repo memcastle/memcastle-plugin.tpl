@@ -15,14 +15,14 @@ license = "MIT"
 [[modules]]
 id = "{{ id }}"
 type = "source"
-manifest = "modules/{{ id }}/memcastle-source.toml"
-entry = "modules/{{ id }}/source.wasm"
+manifest = "sources/{{ id }}/memcastle-source.toml"
+entry = "sources/{{ id }}/source.wasm"
 contract = "0.4.0"
 {% endfor %}
 {% for id in integrations %}
 [[modules]]
 id = "{{ id }}"
 type = "integration"
-manifest = "modules/{{ id }}/memcastle-integration.toml"
-entry = "modules/{{ id }}/dist/index.js"
+manifest = "integrations/{{ id }}/memcastle-integration.toml"
+entry = "integrations/{{ id }}/dist/index.js"
 {% endfor %}
