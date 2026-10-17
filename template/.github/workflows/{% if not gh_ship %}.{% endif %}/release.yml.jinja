@@ -24,7 +24,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: memcastle/memcastle/.github/actions/core-binary@main
+      - uses: memcastle/memcastle@main
         with:
           version: main
       - name: Require a reviewed version tag on main
@@ -32,7 +32,7 @@ jobs:
           GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
         run: |
           set -euo pipefail
-          expected="$($MEMCASTLE_BIN plugin inspect plugin.toml --json | jq -r '.plugin | "\(.id)/v\(.version)"')"
+          expected="$(memcastle plugin inspect --json | jq -r '.plugin | "\(.id)/v\(.version)"')"
           test "$GITHUB_REF_NAME" = "$expected" || { echo '::error::tag does not match plugin.toml'; exit 1; }
           git fetch origin main
           git merge-base --is-ancestor HEAD origin/main || { echo '::error::tag must be on main'; exit 1; }

@@ -123,7 +123,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: '1.4.2'
-      - uses: memcastle/memcastle/.github/actions/core-binary@main
+      - uses: memcastle/memcastle@main
         with:
           version: main
       - name: Format, lint and install integration dependencies
@@ -195,7 +195,7 @@ jobs:
       archive: {% raw %}${{ steps.archive.outputs.path }}{% endraw %}
     steps:
       - uses: actions/checkout@v7
-      - uses: memcastle/memcastle/.github/actions/core-binary@main
+      - uses: memcastle/memcastle@main
         with:
           version: main
       - name: Download built module artifacts
@@ -226,7 +226,7 @@ jobs:
             module_dir="$(dirname "$manifest")"
             if [[ -f "$module_dir/memcastle-source.toml" ]]; then rm -f "$module_dir/dist/source.wasm"; fi
           done
-          "$MEMCASTLE_BIN" plugin package plugin.toml --json > "$RUNNER_TEMP/plugin-package.json"
+          memcastle plugin package plugin.toml --json > "$RUNNER_TEMP/plugin-package.json"
           git diff --exit-code -- plugin.toml || { echo '::error::packaging must not change plugin.toml'; exit 1; }
           git diff --exit-code -- manifest.toml || { echo '::error::commit the regenerated manifest.toml'; exit 1; }
           path="$(jq -r .archive "$RUNNER_TEMP/plugin-package.json")"
@@ -258,7 +258,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        core: [{% if core_versions %}{% for version in core_versions %}"{{ version }}"{% if not loop.last %}, {% endif %}{% endfor %}{% else %}"main"{% endif %}]
+        core: [{% if core_versions %}{% for core_ref in core_versions %}"{{ core_ref }}"{% if not loop.last %}, {% endif %}{% endfor %}{% else %}"main"{% endif %}]
     uses: memcastle/memcastle/.github/workflows/plugin-validation.yaml@main
     with:
       artifact-name: plugin-package

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-: "${MEMCASTLE_BIN:?set MEMCASTLE_BIN to a plugin-capable Core binary}"
+command -v memcastle >/dev/null || { echo 'put a plugin-capable Core binary on PATH'; exit 1; }
 plugin="$1"
 version="$2"
-"$MEMCASTLE_BIN" plugin inspect plugin.toml --json > .plugin-test-inventory.json
+memcastle plugin inspect --json > .plugin-test-inventory.json
 
 for id in $(jq -r '.modules[] | select(.type == "source") | .id' .plugin-test-inventory.json); do
   module="$PWD/modules/$id"
@@ -29,7 +29,7 @@ for id in $(jq -r '.modules[] | select(.type == "integration") | .id' .plugin-te
 done
 
 before="$(sha256sum plugin.toml)"
-"$MEMCASTLE_BIN" plugin package plugin.toml --json > .plugin-test-package.json
+memcastle plugin package --json > .plugin-test-package.json
 test "$before" = "$(sha256sum plugin.toml)"
 archive="$(jq -r .archive .plugin-test-package.json)"
 checksum="$(jq -r .checksum .plugin-test-package.json)"
@@ -38,7 +38,7 @@ test "$checksum" = "dist/$plugin-$version.sha256sum"
 tar -tf "$archive" | grep '^manifest.toml$' >/dev/null
 if tar -tf "$archive" | grep '^plugin.toml$' >/dev/null; then exit 1; fi
 (cd dist && sha256sum --check "$plugin-$version.sha256sum")
-"$MEMCASTLE_BIN" plugin test "$archive"
+memcastle plugin test "$archive"
 first="$(sha256sum "$archive")"
-"$MEMCASTLE_BIN" plugin package plugin.toml --json > .plugin-test-package-again.json
+memcastle plugin package --json > .plugin-test-package-again.json
 test "$first" = "$(sha256sum "$archive")"
