@@ -15,6 +15,8 @@ rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh example
 
 [expect.contains]
 "plugin.toml" = ['id = "jira"', 'id = "confluence"', 'id = "assistant"']
+".github/workflows/ci.yaml" = ["name: source-jira", "path: modules/jira/", "name: source-confluence", "name: integration-assistant", "path: modules/assistant/dist/"]
 
 [expect.lacks]
 "plugin.toml" = ["version =", "manifest_sha256 =", "sha256 ="]
+".github/workflows/ci.yaml" = ["gh run download", "inventory:"]

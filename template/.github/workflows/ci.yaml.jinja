@@ -193,7 +193,6 @@ jobs:
 {% endif %}
     runs-on: ubuntu-latest
     permissions:
-      actions: read
       contents: read
     steps:
       - uses: actions/checkout@v7
@@ -204,19 +203,18 @@ jobs:
       - uses: memcastle/memcastle@main
         with:
           version: main
-      - name: Download built module artifacts
-        env:
-          GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
-          SOURCES: '[{% for id in sources %}"{{ id }}"{% if not loop.last %},{% endif %}{% endfor %}]'
-          INTEGRATIONS: '[{% for id in integrations %}"{{ id }}"{% if not loop.last %},{% endif %}{% endfor %}]'
-        run: |
-          set -euo pipefail
-          for id in $(jq -r '.[]' <<< "$SOURCES"); do
-            gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "source-$id" --dir "modules/$id"
-          done
-          for id in $(jq -r '.[]' <<< "$INTEGRATIONS"); do
-            gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "integration-$id" --dir "modules/$id/dist"
-          done
+{% for id in sources %}
+      - uses: actions/download-artifact@v8
+        with:
+          name: source-{{ id }}
+          path: modules/{{ id }}/
+{% endfor %}
+{% for id in integrations %}
+      - uses: actions/download-artifact@v8
+        with:
+          name: integration-{{ id }}
+          path: modules/{{ id }}/dist/
+{% endfor %}
       - name: Package plugin
         run: memcastle plugin package
       - uses: actions/upload-artifact@v7
