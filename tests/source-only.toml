@@ -3,6 +3,10 @@ plugin_id = "sample"
 sources = ["directory"]
 integrations = []
 codecov = true
+codecov_project_target = "73%"
+codecov_patch_target = "70%"
+codecov_source_target = "66%"
+codecov_covered_sources = ["directory"]
 source_template = "../memcastle-source.tpl"
 
 [expect]
@@ -11,3 +15,7 @@ absent = ["manifest.toml", "integrations/directory/memcastle-integration.toml", 
 
 [expect.contains]
 ".github/workflows/ci.yaml" = ["cargo llvm-cov nextest", "report_type: test_results", "memcastle plugin package"]
+".github/codecov.yml" = ['target: "73%"', 'target: "70%"', 'source-directory:', 'paths: ["sources/directory/src/**"]', 'target: "66%"', 'carryforward: false']
+
+[expect.lacks]
+".github/codecov.yml" = ["target: auto", "integration-directory:", "informational: true"]

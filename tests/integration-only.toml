@@ -3,6 +3,8 @@ plugin_id = "assistant"
 sources = []
 integrations = ["opencode"]
 codecov = true
+codecov_integration_target = "77%"
+codecov_covered_integrations = ["opencode"]
 integration_template = "../memcastle-integration.tpl"
 
 [expect]
@@ -11,6 +13,8 @@ absent = ["manifest.toml", "sources/opencode/memcastle-source.toml", "integratio
 
 [expect.contains]
 ".github/workflows/ci.yaml" = ["bun test --timeout 60000 --coverage", "report_type: test_results", "integration-"]
+".github/codecov.yml" = ['target: "80%"', 'integration-opencode:', 'paths: ["integrations/opencode/src/**"]', 'target: "77%"', 'carryforward: false']
 
 [expect.lacks]
 "plugin.toml" = ["version =", "sha256 ="]
+".github/codecov.yml" = ["target: auto", "source-opencode:", "informational: true"]

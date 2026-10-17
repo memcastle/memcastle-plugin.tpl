@@ -1,6 +1,8 @@
 [answers]
 plugin_id = "example"
 codecov = true
+codecov_covered_sources = ["jira"]
+codecov_covered_integrations = ["assistant"]
 sources = ["jira", "confluence"]
 integrations = ["assistant"]
 source_template = "../memcastle-source.tpl"
@@ -16,7 +18,9 @@ rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh example
 [expect.contains]
 "plugin.toml" = ['id = "jira"', 'id = "confluence"', 'id = "assistant"']
 ".github/workflows/ci.yaml" = ["name: source-jira", "path: sources/jira/", "name: source-confluence", "name: integration-assistant", "path: integrations/assistant/dist/"]
+".github/codecov.yml" = ["source-jira:", "source-confluence:", "integration-assistant:", 'paths: ["sources/jira/src/**"]', 'paths: ["integrations/assistant/src/**"]', "informational: true", 'layout: reach,diff,flags,components,files']
 
 [expect.lacks]
 "plugin.toml" = ["version =", "manifest_sha256 =", "sha256 ="]
 ".github/workflows/ci.yaml" = ["gh run download", "inventory:"]
+".github/codecov.yml" = ["target: auto"]
