@@ -28,8 +28,10 @@ review `git tpl diff --json`, and run `git tpl merge --json`.
 `git tpl test` checks empty and mixed renders, typed modules, conditional CI and the pinned child composition.
 
 `ci.yaml` builds source components with reproducible Cargo flags and agent integrations with Bun, then runs
-`memcastle plugin package plugin.toml` to update hashes and write a deterministic release archive.
-Commit each generated source module's `Cargo.lock` and reviewed manifest hashes; CI requires both for reproducible builds.
+`memcastle plugin package plugin.toml` to write a deterministic release archive with an in-archive
+the generated `manifest.toml` (descriptor metadata, version and every artifact checksum) and an external
+`dist/ID-VERSION.sha256sum` for the archive. `plugin.toml` is never changed or archived.
+Commit the regenerated `manifest.toml` and each source module's `Cargo.lock` for reproducible builds.
 The resulting archive is the installation unit; neither source modules nor integration modules are separately fetched from the plugin registry.
 The generated source and integration jobs format, lint and test each module separately.
 `memcastle plugin test dist/ID-VERSION.tar.gz` validates the archive in a disposable palace,

@@ -6,7 +6,7 @@ codecov = true
 source_template = "../memcastle-source.tpl"
 
 [expect]
-files = [".github/workflows/ci.yaml", "modules/directory/Cargo.toml", "modules/directory/memcastle-source.toml", ".github/codecov.yml"]
+files = [".github/workflows/ci.yaml", "manifest.toml", "modules/directory/Cargo.toml", "modules/directory/memcastle-source.toml", ".github/codecov.yml"]
 absent = ["scripts/package.py", "scripts/coverage.py", "tests/test_manifest.py", ".github/workflows/plugin.yml"]
 
 [expect.contains]

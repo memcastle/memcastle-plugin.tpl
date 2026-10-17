@@ -7,8 +7,12 @@ source_template = "../memcastle-source.tpl"
 integration_template = "../memcastle-integration.tpl"
 
 [expect]
-files = ["plugin.toml", "modules/jira/memcastle-source.toml", "modules/confluence/src/lib.rs", "modules/assistant/memcastle-integration.toml", "modules/assistant/dist/index.js", ".github/workflows/ci.yaml", ".github/codecov.yml", ".config/nextest.toml"]
+files = ["plugin.toml", "manifest.toml", "modules/jira/memcastle-source.toml", "modules/confluence/src/lib.rs", "modules/assistant/memcastle-integration.toml", "modules/assistant/dist/index.js", ".github/workflows/ci.yaml", ".github/codecov.yml", ".config/nextest.toml"]
 absent = [".github/workflows/plugin.yml", ".github/workflows/coverage.yml", "scripts/coverage.py", "scripts/package.py", "scripts/smoke_install.py", "tests/test_manifest.py"]
 
 [expect.contains]
 "plugin.toml" = ['id = "jira"', 'id = "confluence"', 'id = "assistant"']
+"manifest.toml" = ['version = "0.1.0"', 'id = "assistant"']
+
+[expect.lacks]
+"plugin.toml" = ["version =", "manifest_sha256 =", "sha256 ="]

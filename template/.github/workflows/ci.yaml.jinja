@@ -231,7 +231,7 @@ jobs:
           for id in $(jq -r '.[]' <<< "$INTEGRATIONS"); do
             gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "integration-$id" --dir "modules/$id/dist"
           done
-      - name: Check source locks, package and reviewed digests
+      - name: Check source locks and package immutable plugin descriptor
         id: archive
         run: |
           set -euo pipefail
@@ -242,15 +242,22 @@ jobs:
             fi
           done
           "$MEMCASTLE_BIN" plugin package plugin.toml --json > "$RUNNER_TEMP/plugin-package.json"
-          git diff --exit-code -- plugin.toml || { echo '::error::commit reviewed plugin.toml digests'; exit 1; }
+          git diff --exit-code -- plugin.toml || { echo '::error::packaging must not change plugin.toml'; exit 1; }
+          git diff --exit-code -- manifest.toml || { echo '::error::commit the regenerated manifest.toml'; exit 1; }
           path="$(jq -r .archive "$RUNNER_TEMP/plugin-package.json")"
+          checksum="$(jq -r .checksum "$RUNNER_TEMP/plugin-package.json")"
           test -s "$path"
+          test -s "$checksum"
+          tar -xOzf "$path" manifest.toml | grep -q '^\[plugin\]$'
+          if tar -tf "$path" | grep -q '^plugin.toml$'; then echo '::error::the descriptor must not be archived'; exit 1; fi
+          (cd "$(dirname "$path")" && sha256sum --check "$(basename "$checksum")")
           echo "path=$path" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v7
         with:
           name: plugin-package
           path: |
             dist/*.tar.gz
+            dist/*.sha256sum
             modules/*/source.wasm
             modules/*/dist/source.wasm
           if-no-files-found: error

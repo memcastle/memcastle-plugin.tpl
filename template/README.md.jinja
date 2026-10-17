@@ -13,8 +13,9 @@ memcastle plugin test dist/{{ plugin_id }}-{{ version }}.tar.gz
 ```
 
 The archive in `dist/` is independently releasable from MemCastle Core.
-The root `plugin.toml` declares stable module identities; Core's `plugin package` fills artifact hashes from built modules.
-Commit each source module's generated `Cargo.lock` and the reviewed hashes before publishing a release.
+The root `plugin.toml` is an immutable descriptor of module identities and paths and is not included in the archive.
+Core's `plugin package` regenerates the reviewable `manifest.toml` with metadata, versions and artifact checksums,
+then writes a matching `.sha256sum` next to the archive. Commit the manifest and each source's `Cargo.lock`.
 The source module carries the versioned public WIT contract and its own fixtures; the agent integration uses MCP/HTTP.
 No module needs a private Core checkout or a sibling provider to build or test.
 Core's plugin smoke test starts an isolated daemon and checks archive installation and source activation;

@@ -49,4 +49,6 @@ jobs:
           ARCHIVE: {% raw %}${{ needs.validate.outputs.archive }}{% endraw %}
         run: |
           test -s "$ARCHIVE"
-          gh release create "$GITHUB_REF_NAME" "$ARCHIVE" --generate-notes
+          checksum="${ARCHIVE%.tar.gz}.sha256sum"
+          test -s "$checksum"
+          gh release create "$GITHUB_REF_NAME" "$ARCHIVE" "$checksum" --generate-notes
