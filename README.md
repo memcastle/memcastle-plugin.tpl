@@ -31,12 +31,16 @@ the empty and mixed cases build and smoke-test actual archives in disposable Git
 The template CI downloads the verified Core `main` development binary and installs Rust, `wasm32-wasip2` and Bun.
 
 `ci.yaml` builds source components with reproducible Cargo flags and agent integrations with Bun, then runs
-`memcastle plugin package plugin.toml` to write a deterministic release archive with an in-archive
-the generated `manifest.toml` (descriptor metadata, version and every artifact checksum) and an external
+`memcastle plugin package plugin.toml` to write a deterministic release archive containing the generated
+`manifest.toml` (descriptor metadata, version and every artifact checksum) and an external
 `dist/ID-VERSION.sha256sum` for the archive. `plugin.toml` is never changed or archived.
 Commit the regenerated `manifest.toml` and each source module's `Cargo.lock` for reproducible builds.
 The resulting archive is the installation unit; neither source modules nor integration modules are separately fetched from the plugin registry.
 The generated source and integration jobs format, lint and test each module separately.
+The test jobs instrument only Rust library targets, preserve hidden integration assets and allow longer-lived
+agent tests; a source-only plugin still runs Core validation when its integration matrix is skipped.
+When a source and integration share an ID in an existing provider, the package job excludes the fixture component
+from the integration assets and restores it for Core's source conformance check.
 `memcastle plugin test dist/ID-VERSION.tar.gz` validates the archive in a disposable palace,
 including preview, per-source consent, inactive installation and explicit source activation.
 Agent integration registration and legacy adoption remain provider-specific tests.
