@@ -85,8 +85,10 @@ default = "https://github.com/memcastle/memcastle-integration.tpl"
 source = "{{ source_template }}"
 ref = "5f2a8350bd82c49ec2370d70c83019ff6fc5a822"
 from = "sources"
+path = "sources"
 
 [[compose]]
 source = "{{ integration_template }}"
 ref = "d055d87eeba173e56ba0c84bc25c8ddeaeeaa0da"
 from = "integrations"
+path = "integrations"

@@ -3,7 +3,7 @@
 One repository produces one independently versioned plugin, with zero or more source and integration modules.
 The plugin template composes the independently maintained `memcastle-source.tpl` and `memcastle-integration.tpl` repositories.
 Each child is pinned to a reviewed commit in `template.toml`; `.config/git.tpl.toml` records those exact revisions.
-GitTPL 0.14 or newer is required for the `type = "list"` questions and `[[compose]]` declarations.
+GitTPL 0.14.3 or newer is required for per-composition `path` settings that separate the typed module roots.
 
 ```sh
 git tpl --json questions "$PWD"
@@ -19,6 +19,9 @@ The defaults fetch the pinned published child commits; the local-path example ab
 instead and never silently changes them to the published URLs.
 
 An empty `sources` or `integrations` answer is valid.
+Source modules render in `sources/<id>/` and agent integrations in `integrations/<id>/`.
+The same ID may appear in both lists without colliding; each has its own manifest, build job and lifecycle.
+Existing providers using `modules/<id>/` update through an ordinary GitTPL diff and keep their implementations.
 To add a module later, edit the recorded `sources` or `integrations` array in `.config/git.tpl.toml`, then run
 `git tpl update --defaults` and `git tpl merge`; the rendered ref remains append-only.
 To advance a child, test and commit it first, update its full SHA in `template.toml` and the template CI checkouts,
@@ -29,6 +32,8 @@ review `git tpl diff --json`, and run `git tpl merge --json`.
 Set `MEMCASTLE_BIN` to a Core binary with `plugin package` and `plugin test` before running it locally;
 the empty and mixed cases build and smoke-test actual archives in disposable GitTPL sandboxes.
 The template CI downloads the verified Core `main` development binary and installs Rust, `wasm32-wasip2` and Bun.
+The Core version used for validation must support both typed module roots; earlier released plugin archives under
+`modules/<id>/` remain installable.
 
 `ci.yaml` builds source components with reproducible Cargo flags and agent integrations with Bun, then runs
 `memcastle plugin package plugin.toml` to write a deterministic release archive containing the generated

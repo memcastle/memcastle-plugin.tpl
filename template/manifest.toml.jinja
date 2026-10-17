@@ -14,8 +14,8 @@ license = "MIT"
 id = "{{ id }}"
 type = "source"
 version = "{{ version }}"
-manifest = "modules/{{ id }}/memcastle-source.toml"
-entry = "modules/{{ id }}/source.wasm"
+manifest = "sources/{{ id }}/memcastle-source.toml"
+entry = "sources/{{ id }}/source.wasm"
 contract = "0.4.0"
 {% endfor %}
 {% for id in integrations %}
@@ -23,7 +23,7 @@ contract = "0.4.0"
 id = "{{ id }}"
 type = "integration"
 version = "{{ version }}"
-manifest = "modules/{{ id }}/memcastle-integration.toml"
-entry = "modules/{{ id }}/dist/index.js"
+manifest = "integrations/{{ id }}/memcastle-integration.toml"
+entry = "integrations/{{ id }}/dist/index.js"
 {% endfor %}
 [checksums]
