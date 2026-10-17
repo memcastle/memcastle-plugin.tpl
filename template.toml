@@ -75,5 +75,5 @@ from = "sources"
 
 [[compose]]
 source = "{{ integration_template }}"
-ref = "04cc8455f056485cb08298a4a0af82909d314fe9"
+ref = "d055d87eeba173e56ba0c84bc25c8ddeaeeaa0da"
 from = "integrations"

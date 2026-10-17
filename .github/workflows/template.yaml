@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: memcastle/memcastle-integration.tpl
-          ref: 04cc8455f056485cb08298a4a0af82909d314fe9
+          ref: d055d87eeba173e56ba0c84bc25c8ddeaeeaa0da
           path: memcastle-integration.tpl
       - uses: dtolnay/rust-toolchain@stable
         with:
