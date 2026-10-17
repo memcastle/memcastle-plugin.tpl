@@ -10,7 +10,7 @@ files = ["plugin.toml", "manifest.toml", "modules/opencode/memcastle-integration
 absent = ["modules/opencode/memcastle-source.toml", "modules/opencode/scripts/check_format.py", ".github/workflows/plugin.yml", "scripts/package.py", "scripts/check_modules.py"]
 
 [expect.contains]
-".github/workflows/ci.yaml" = ["bun test --coverage", "report_type: test_results", "integration-"]
+".github/workflows/ci.yaml" = ["bun test --timeout 60000 --coverage", "report_type: test_results", "integration-"]
 
 [expect.lacks]
 "plugin.toml" = ["version =", "sha256 ="]
