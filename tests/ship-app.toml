@@ -1,0 +1,20 @@
+git = true
+
+[answers]
+plugin_id = "example"
+gh_ship = true
+codecov = true
+ship_token = "app"
+sources = []
+integrations = []
+
+[expect]
+files = [".github/ship.yml", ".github/workflows/ship.yml", ".github/workflows/prepare-release.yml", ".github/workflows/publish-release.yml", "cliff.toml", "mise.toml", ".github/workflows/ci.yaml", ".github/codecov.yml"]
+absent = ["scripts/prepare_release.py", "tests/test_release.py", ".github/workflows/plugin.yml", ".github/workflows/release.yml"]
+
+[expect.contains]
+".github/workflows/ship.yml" = ["actions/create-github-app-token@v3", "steps.app-token.outputs.token"]
+".github/workflows/prepare-release.yml" = ["dry_run:", "ship-release"]
+
+[commands]
+rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_ship.sh example"]

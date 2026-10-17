@@ -1,0 +1,14 @@
+[answers]
+plugin_id = "example"
+gh_ship = true
+ship_token = "pat"
+sources = []
+integrations = []
+
+[expect]
+files = [".github/ship.yml", ".github/workflows/ship.yml", ".github/workflows/prepare-release.yml", ".github/workflows/publish-release.yml", "cliff.toml", "mise.toml", ".github/workflows/ci.yaml"]
+absent = ["scripts/prepare_release.py", "tests/test_release.py", ".github/workflows/plugin.yml", ".github/workflows/release.yml"]
+
+[expect.contains]
+".github/workflows/ship.yml" = ["secrets.SHIP_TOKEN"]
+".github/workflows/prepare-release.yml" = ["dry_run:", "ship-release"]
