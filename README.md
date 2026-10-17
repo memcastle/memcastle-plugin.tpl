@@ -52,7 +52,7 @@ installation and is therefore not a compatible matrix entry.
 The generated workflows retain provider-specific scripts and metadata; Core owns the host download and integration checks.
 Generated workflows follow Core's `main` branch, so improvements to shared validation need no template update.
 Core contract CI separately tests a generated project against the current Core checkout.
-Tag `PLUGIN_ID/vVERSION` on a reviewed `main` commit to publish just this provider, independently of Core releases.
+Without gh-ship, tag `PLUGIN_ID/vVERSION` on a reviewed `main` commit to publish independently of Core releases.
 Set the `codecov` answer to `true` to enable coverage and test-result uploads in the same `ci.yaml` workflow.
 Each source and integration gets its own Cargo/Bun test job and Codecov flag, uploading actual LCOV and JUnit
 reports using GitHub OIDC. Manifest-only suites upload JUnit without inventing coverage.
@@ -60,5 +60,5 @@ Enable the repository in Codecov for coverage and test-result PR statuses.
 
 Set `gh_ship = true` to generate the automated release PR workflow instead of manual tag publishing.
 Choose `ship_token = "app"` (default) for an installation token or `"pat"` for a fine-grained PAT.
-gh-ship computes a version from Conventional Commits, opens a reviewed `release/next` PR, and publishes the
-existing validated plugin archive after that PR merges. The generated README documents repository setup.
+git-cliff computes a version and changelog from Conventional Commits; gh-ship opens a reviewed `release/next` PR
+and publishes the validated plugin archive after that PR merges. The generated README documents repository setup.

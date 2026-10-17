@@ -42,7 +42,7 @@ to Codecov using OIDC. Enable this repository in Codecov to see PR coverage and 
 Manifest-only suites produce test results but no fabricated coverage report.
 {% endif %}
 {% if gh_ship %}
-Releases use gh-ship: merging a releasable Conventional Commit into `main` opens a `release/next` PR.
+Releases use gh-ship and git-cliff: merging a releasable Conventional Commit into `main` opens a `release/next` PR.
 Merging that PR publishes a validated `{{ plugin_id }}/vVERSION` archive as a GitHub Release.
 Set up the `release` environment with {% if ship_token == "app" %}variable `APP_CLIENT_ID` and secret `APP_PRIVATE_KEY`
 for an App installed on this repository{% else %}secret `SHIP_TOKEN` (fine-grained PAT){% endif %}.
