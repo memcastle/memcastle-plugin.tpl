@@ -21,8 +21,6 @@ for id in $(jq -r '.modules[] | select(.type == "source") | .id' .plugin-test-in
   cargo build --manifest-path "$module/Cargo.toml" --locked --release --target wasm32-wasip2
   crate="$(cargo metadata --no-deps --format-version 1 --manifest-path "$module/Cargo.toml" | jq -er '.packages[0].targets[] | select(.kind | index("cdylib")) | .name')"
   cp "$module/target/wasm32-wasip2/release/$crate.wasm" "$module/source.wasm"
-  mkdir -p "$module/dist"
-  cp "$module/source.wasm" "$module/dist/source.wasm"
 done
 
 for id in $(jq -r '.modules[] | select(.type == "integration") | .id' .plugin-test-inventory.json); do
