@@ -38,6 +38,42 @@ type = "boolean"
 prompt = "Upload module test coverage to Codecov?"
 default = false
 
+[questions.codecov_project_target]
+type = "string"
+prompt = "Minimum overall plugin coverage"
+default = "80%"
+pattern = "^(100|[0-9]{1,2})(\\.[0-9]+)?%$"
+message = "use a fixed coverage percentage between 0% and 100%"
+when = "{{ codecov }}"
+default_when_skipped = true
+
+[questions.codecov_patch_target]
+type = "string"
+prompt = "Minimum coverage of changed code"
+default = "80%"
+pattern = "^(100|[0-9]{1,2})(\\.[0-9]+)?%$"
+message = "use a fixed coverage percentage between 0% and 100%"
+when = "{{ codecov }}"
+default_when_skipped = true
+
+[questions.codecov_source_target]
+type = "string"
+prompt = "Minimum coverage of each reporting source"
+default = "80%"
+pattern = "^(100|[0-9]{1,2})(\\.[0-9]+)?%$"
+message = "use a fixed coverage percentage between 0% and 100%"
+when = "{{ codecov }}"
+default_when_skipped = true
+
+[questions.codecov_integration_target]
+type = "string"
+prompt = "Minimum coverage of each reporting integration"
+default = "80%"
+pattern = "^(100|[0-9]{1,2})(\\.[0-9]+)?%$"
+message = "use a fixed coverage percentage between 0% and 100%"
+when = "{{ codecov }}"
+default_when_skipped = true
+
 [questions.core_versions]
 type = "multi_choice"
 prompt = "Core releases to validate"
@@ -71,6 +107,24 @@ prompt = "Integration module IDs (empty for none)"
 default = []
 item_pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"
 item_message = "use lowercase words, numbers and hyphens for each integration ID"
+
+[computed]
+codecov_source_choices = "{{ sources }}"
+codecov_integration_choices = "{{ integrations }}"
+
+[questions.codecov_covered_sources]
+type = "multi_choice"
+prompt = "Source IDs that upload nonempty LCOV reports"
+default = []
+choices_from = "codecov_source_choices"
+when = "{{ codecov }}"
+
+[questions.codecov_covered_integrations]
+type = "multi_choice"
+prompt = "Integration IDs that upload nonempty LCOV reports"
+default = []
+choices_from = "codecov_integration_choices"
+when = "{{ codecov }}"
 
 # Each rendering records the resolved child-main commits for reviewable provider updates.
 [questions.source_template]

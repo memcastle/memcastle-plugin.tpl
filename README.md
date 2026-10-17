@@ -69,6 +69,13 @@ Without gh-ship, tag `PLUGIN_ID/vVERSION` on a reviewed `main` commit to publish
 Set the `codecov` answer to `true` to enable coverage and test-result uploads in the same `ci.yaml` workflow.
 Each source and integration gets its own Cargo/Bun test job and Codecov flag, uploading actual LCOV and JUnit
 reports using GitHub OIDC. Manifest-only suites upload JUnit without inventing coverage.
+The `codecov_project_target`, `codecov_patch_target`, `codecov_source_target` and `codecov_integration_target`
+answers set fixed coverage floors rather than inheriting the previous commit's coverage.
+Set `codecov_covered_sources` and `codecov_covered_integrations` to IDs that reliably upload nonempty LCOV;
+those modules get blocking, path-based component checks, while modules without coverage remain informational.
+Every typed module still has a distinct flag and component, even if a source and integration share an ID.
+Use actual Codecov main-branch and per-flag coverage to choose realistic floors when enabling coverage in an existing
+plugin. The Codecov config does not wait for a fixed upload count because modules with no native tests skip LCOV.
 Enable the repository in Codecov for coverage and test-result PR statuses.
 
 Set `gh_ship = true` to generate the automated release PR workflow instead of manual tag publishing.
