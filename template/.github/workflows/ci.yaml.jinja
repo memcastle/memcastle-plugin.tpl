@@ -248,7 +248,7 @@ jobs:
           checksum="$(jq -r .checksum "$RUNNER_TEMP/plugin-package.json")"
           test -s "$path"
           test -s "$checksum"
-          tar -xOzf "$path" manifest.toml | grep -q '^\[plugin\]$'
+          tar -xOzf "$path" manifest.toml | grep '^\[plugin\]$' >/dev/null
           if tar -tf "$path" | grep -q '^plugin.toml$'; then echo '::error::the descriptor must not be archived'; exit 1; fi
           (cd "$(dirname "$path")" && sha256sum --check "$(basename "$checksum")")
           echo "path=$path" >> "$GITHUB_OUTPUT"
