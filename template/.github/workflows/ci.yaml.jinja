@@ -63,15 +63,15 @@ jobs:
         env:
           MODULE: {% raw %}${{ matrix.source }}{% endraw %}
         run: |
-          cargo fmt --manifest-path "modules/$MODULE/Cargo.toml" --all -- --check
-          cargo clippy --manifest-path "modules/$MODULE/Cargo.toml" --locked --target wasm32-wasip2 -- -D warnings
+          cargo fmt --manifest-path "sources/$MODULE/Cargo.toml" --all -- --check
+          cargo clippy --manifest-path "sources/$MODULE/Cargo.toml" --locked --target wasm32-wasip2 -- -D warnings
 {% if codecov %}
       - name: Run source tests with coverage and JUnit
         id: source-tests
         env:
           MODULE: {% raw %}${{ matrix.source }}{% endraw %}
         run: |
-          cd "modules/$MODULE"
+          cd "sources/$MODULE"
           cargo llvm-cov nextest --locked --config-file "$GITHUB_WORKSPACE/.config/nextest.toml" --no-tests=pass --lib
           if grep -q '<testcase' target/nextest/default/junit.xml; then
             mkdir -p coverage
@@ -81,14 +81,14 @@ jobs:
       - uses: codecov/codecov-action@v7
         if: {% raw %}${{ steps.source-tests.outputs.has_tests == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}{% endraw %}
         with:
-          files: modules/{% raw %}${{ matrix.source }}{% endraw %}/coverage/lcov.info
+          files: sources/{% raw %}${{ matrix.source }}{% endraw %}/coverage/lcov.info
           flags: source-{% raw %}${{ matrix.source }}{% endraw %}
           use_oidc: true
           fail_ci_if_error: true
       - uses: codecov/codecov-action@v7
         if: {% raw %}${{ steps.source-tests.outputs.has_tests == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}{% endraw %}
         with:
-          files: modules/{% raw %}${{ matrix.source }}{% endraw %}/target/nextest/default/junit.xml
+          files: sources/{% raw %}${{ matrix.source }}{% endraw %}/target/nextest/default/junit.xml
           flags: source-{% raw %}${{ matrix.source }}{% endraw %}
           report_type: test_results
           use_oidc: true
@@ -97,14 +97,14 @@ jobs:
       - name: Test source natively
         env:
           MODULE: {% raw %}${{ matrix.source }}{% endraw %}
-        run: cargo test --manifest-path "modules/$MODULE/Cargo.toml" --locked --lib
+        run: cargo test --manifest-path "sources/$MODULE/Cargo.toml" --locked --lib
 {% endif %}
       - name: Build reproducible source component
         env:
           MODULE: {% raw %}${{ matrix.source }}{% endraw %}
         run: |
           set -euo pipefail
-          module_dir="$PWD/modules/$MODULE"
+          module_dir="$PWD/sources/$MODULE"
           cargo_home="$(realpath "${CARGO_HOME:-$HOME/.cargo}")"
           sysroot="$(rustc --print sysroot)"
           commit="$(rustc --version --verbose | awk '/^commit-hash: / {print $2}')"
@@ -120,8 +120,8 @@ jobs:
         with:
           name: source-{% raw %}${{ matrix.source }}{% endraw %}
           path: |
-            modules/{% raw %}${{ matrix.source }}{% endraw %}/source.wasm
-            modules/{% raw %}${{ matrix.source }}{% endraw %}/dist/source.wasm
+            sources/{% raw %}${{ matrix.source }}{% endraw %}/source.wasm
+            sources/{% raw %}${{ matrix.source }}{% endraw %}/dist/source.wasm
           if-no-files-found: error
 
   integration:
@@ -147,57 +147,57 @@ jobs:
         with:
           version: main
       - name: Format, lint and install integration dependencies
-        if: {% raw %}${{ hashFiles(format('modules/{0}/package.json', matrix.integration)) != '' }}{% endraw %}
+        if: {% raw %}${{ hashFiles(format('integrations/{0}/package.json', matrix.integration)) != '' }}{% endraw %}
         env:
           MODULE: {% raw %}${{ matrix.integration }}{% endraw %}
         run: |
-          cd "modules/$MODULE"
+          cd "integrations/$MODULE"
           if [[ -f bun.lock || -f bun.lockb ]]; then bun install --frozen-lockfile; else bun install; fi
           bun run format:check
           bun run lint
 {% if codecov %}
       - name: Run integration tests with coverage and JUnit
-        if: {% raw %}${{ hashFiles(format('modules/{0}/package.json', matrix.integration)) != '' }}{% endraw %}
+        if: {% raw %}${{ hashFiles(format('integrations/{0}/package.json', matrix.integration)) != '' }}{% endraw %}
         env:
           MODULE: {% raw %}${{ matrix.integration }}{% endraw %}
         run: |
-          cd "modules/$MODULE"
+          cd "integrations/$MODULE"
           bun test --timeout 60000 --coverage --coverage-reporter=lcov --reporter=junit --reporter-outfile=junit.xml
       - uses: codecov/codecov-action@v7
-        if: {% raw %}${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && hashFiles(format('modules/{0}/coverage/lcov.info', matrix.integration)) != '' }}{% endraw %}
+        if: {% raw %}${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && hashFiles(format('integrations/{0}/coverage/lcov.info', matrix.integration)) != '' }}{% endraw %}
         with:
-          files: modules/{% raw %}${{ matrix.integration }}{% endraw %}/coverage/lcov.info
+          files: integrations/{% raw %}${{ matrix.integration }}{% endraw %}/coverage/lcov.info
           flags: integration-{% raw %}${{ matrix.integration }}{% endraw %}
           use_oidc: true
           fail_ci_if_error: true
       - uses: codecov/codecov-action@v7
-        if: {% raw %}${{ hashFiles(format('modules/{0}/junit.xml', matrix.integration)) != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}{% endraw %}
+        if: {% raw %}${{ hashFiles(format('integrations/{0}/junit.xml', matrix.integration)) != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}{% endraw %}
         with:
-          files: modules/{% raw %}${{ matrix.integration }}{% endraw %}/junit.xml
+          files: integrations/{% raw %}${{ matrix.integration }}{% endraw %}/junit.xml
           flags: integration-{% raw %}${{ matrix.integration }}{% endraw %}
           report_type: test_results
           use_oidc: true
           fail_ci_if_error: true
 {% else %}
       - name: Test integration
-        if: {% raw %}${{ hashFiles(format('modules/{0}/package.json', matrix.integration)) != '' }}{% endraw %}
+        if: {% raw %}${{ hashFiles(format('integrations/{0}/package.json', matrix.integration)) != '' }}{% endraw %}
         env:
           MODULE: {% raw %}${{ matrix.integration }}{% endraw %}
         run: |
-          cd "modules/$MODULE"
+          cd "integrations/$MODULE"
           bun test --timeout 60000
 {% endif %}
       - name: Build integration assets
-        if: {% raw %}${{ hashFiles(format('modules/{0}/package.json', matrix.integration)) != '' }}{% endraw %}
+        if: {% raw %}${{ hashFiles(format('integrations/{0}/package.json', matrix.integration)) != '' }}{% endraw %}
         env:
           MODULE: {% raw %}${{ matrix.integration }}{% endraw %}
         run: |
-          cd "modules/$MODULE"
+          cd "integrations/$MODULE"
           bun run build
       - uses: actions/upload-artifact@v7
         with:
           name: integration-{% raw %}${{ matrix.integration }}{% endraw %}
-          path: modules/{% raw %}${{ matrix.integration }}{% endraw %}/dist/
+          path: integrations/{% raw %}${{ matrix.integration }}{% endraw %}/dist/
           if-no-files-found: error
           include-hidden-files: true
 
@@ -227,25 +227,20 @@ jobs:
         run: |
           set -euo pipefail
           for id in $(jq -r '.[]' <<< "$SOURCES"); do
-            gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "source-$id" --dir "modules/$id"
+            gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "source-$id" --dir "sources/$id"
           done
           for id in $(jq -r '.[]' <<< "$INTEGRATIONS"); do
-            gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "integration-$id" --dir "modules/$id/dist"
+            gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "integration-$id" --dir "integrations/$id/dist"
           done
       - name: Check source locks and package immutable plugin descriptor
         id: archive
         run: |
           set -euo pipefail
-          for manifest in modules/*/memcastle-source.toml; do
+          for manifest in sources/*/memcastle-source.toml; do
             if [[ -f "$manifest" ]]; then
               lock="$(dirname "$manifest")/Cargo.lock"
               git ls-files --error-unmatch "$lock" >/dev/null || { echo "::error::commit $lock"; exit 1; }
             fi
-          done
-          # A source/integration overlay shares dist/; its fixture component is not an integration asset.
-          for manifest in modules/*/memcastle-integration.toml; do
-            module_dir="$(dirname "$manifest")"
-            if [[ -f "$module_dir/memcastle-source.toml" ]]; then rm -f "$module_dir/dist/source.wasm"; fi
           done
           "$MEMCASTLE_BIN" plugin package plugin.toml --json > "$RUNNER_TEMP/plugin-package.json"
           git diff --exit-code -- plugin.toml || { echo '::error::packaging must not change plugin.toml'; exit 1; }
@@ -257,10 +252,6 @@ jobs:
           tar -xOzf "$path" manifest.toml | grep '^\[plugin\]$' >/dev/null
           if tar -tf "$path" | grep -q '^plugin.toml$'; then echo '::error::the descriptor must not be archived'; exit 1; fi
           (cd "$(dirname "$path")" && sha256sum --check "$(basename "$checksum")")
-          for manifest in modules/*/memcastle-integration.toml; do
-            module_dir="$(dirname "$manifest")"
-            if [[ -f "$module_dir/memcastle-source.toml" ]]; then cp "$module_dir/source.wasm" "$module_dir/dist/source.wasm"; fi
-          done
           echo "path=$path" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v7
         with:
@@ -268,8 +259,8 @@ jobs:
           path: |
             dist/*.tar.gz
             dist/*.sha256sum
-            modules/*/source.wasm
-            modules/*/dist/source.wasm
+            sources/*/source.wasm
+            sources/*/dist/source.wasm
           if-no-files-found: error
 
   validate:

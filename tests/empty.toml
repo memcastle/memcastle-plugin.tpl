@@ -5,7 +5,7 @@ integrations = []
 
 [expect]
 files = ["plugin.toml", "manifest.toml", "README.md", ".github/workflows/ci.yaml", ".github/workflows/release.yml", ".config/nextest.toml"]
-absent = ["modules/one/memcastle-source.toml", ".github/workflows/coverage.yml", "scripts/package.py", "scripts/check_modules.py", "scripts/smoke_install.py", "tests/test_manifest.py", ".github/codecov.yml"]
+absent = ["sources/one/memcastle-source.toml", "integrations/one/memcastle-integration.toml", ".github/workflows/coverage.yml", "scripts/package.py", "scripts/check_modules.py", "scripts/smoke_install.py", "tests/test_manifest.py", ".github/codecov.yml"]
 
 [commands]
 rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh empty 0.1.0"]

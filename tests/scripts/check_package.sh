@@ -7,7 +7,7 @@ version="$2"
 "$MEMCASTLE_BIN" plugin inspect plugin.toml --json > .plugin-test-inventory.json
 
 for id in $(jq -r '.modules[] | select(.type == "source") | .id' .plugin-test-inventory.json); do
-  module="$PWD/modules/$id"
+  module="$PWD/sources/$id"
   cargo generate-lockfile --manifest-path "$module/Cargo.toml"
   cargo_home="$(realpath "${CARGO_HOME:-$HOME/.cargo}")"
   sysroot="$(rustc --print sysroot)"
@@ -23,8 +23,8 @@ for id in $(jq -r '.modules[] | select(.type == "source") | .id' .plugin-test-in
 done
 
 for id in $(jq -r '.modules[] | select(.type == "integration") | .id' .plugin-test-inventory.json); do
-  if [[ -f "modules/$id/package.json" ]]; then
-    (cd "modules/$id" && bun install && bun run format:check && bun test && bun run build)
+  if [[ -f "integrations/$id/package.json" ]]; then
+    (cd "integrations/$id" && bun install && bun run format:check && bun test && bun run build)
   fi
 done
 
