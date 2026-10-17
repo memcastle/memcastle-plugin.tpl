@@ -15,29 +15,9 @@ permissions:
   contents: read
 
 jobs:
-  inventory:
-    name: 📋 Discover typed modules
-    runs-on: ubuntu-latest
-    outputs:
-      sources: {% raw %}${{ steps.modules.outputs.sources }}{% endraw %}
-      integrations: {% raw %}${{ steps.modules.outputs.integrations }}{% endraw %}
-    steps:
-      - uses: actions/checkout@v7
-      - uses: memcastle/memcastle/.github/actions/core-binary@main
-        with:
-          version: main
-      - name: Inspect plugin manifest
-        id: modules
-        run: |
-          set -euo pipefail
-          "$MEMCASTLE_BIN" plugin inspect plugin.toml --json > "$RUNNER_TEMP/plugin.json"
-          echo "sources=$(jq -c '[.modules[] | select(.type == "source") | .id]' "$RUNNER_TEMP/plugin.json")" >> "$GITHUB_OUTPUT"
-          echo "integrations=$(jq -c '[.modules[] | select(.type == "integration") | .id]' "$RUNNER_TEMP/plugin.json")" >> "$GITHUB_OUTPUT"
-
+{% if sources %}
   source:
     name: 🦀 Source {% raw %}${{ matrix.source }}{% endraw %}
-    needs: inventory
-    if: {% raw %}${{ needs.inventory.outputs.sources != '[]' }}{% endraw %}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -47,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        source: {% raw %}${{ fromJSON(needs.inventory.outputs.sources) }}{% endraw %}
+        source: [{% for id in sources %}"{{ id }}"{% if not loop.last %}, {% endif %}{% endfor %}]
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
@@ -124,10 +104,10 @@ jobs:
             modules/{% raw %}${{ matrix.source }}{% endraw %}/dist/source.wasm
           if-no-files-found: error
 
+{% endif %}
+{% if integrations %}
   integration:
     name: 🔌 Integration {% raw %}${{ matrix.integration }}{% endraw %}
-    needs: inventory
-    if: {% raw %}${{ needs.inventory.outputs.integrations != '[]' }}{% endraw %}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -137,7 +117,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        integration: {% raw %}${{ fromJSON(needs.inventory.outputs.integrations) }}{% endraw %}
+        integration: [{% for id in integrations %}"{{ id }}"{% if not loop.last %}, {% endif %}{% endfor %}]
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
@@ -201,13 +181,12 @@ jobs:
           if-no-files-found: error
           include-hidden-files: true
 
+{% endif %}
   package:
     name: 🏗️ Package
-    needs: [inventory, source, integration]
-    if: >-
-      {% raw %}${{ always() && needs.inventory.result == 'success'
-        && (needs.source.result == 'success' || needs.source.result == 'skipped')
-        && (needs.integration.result == 'success' || needs.integration.result == 'skipped') }}{% endraw %}
+{% if sources or integrations %}
+    needs: [{% if sources %}source{% endif %}{% if sources and integrations %}, {% endif %}{% if integrations %}integration{% endif %}]
+{% endif %}
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -222,8 +201,8 @@ jobs:
       - name: Download built module artifacts
         env:
           GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
-          SOURCES: {% raw %}${{ needs.inventory.outputs.sources }}{% endraw %}
-          INTEGRATIONS: {% raw %}${{ needs.inventory.outputs.integrations }}{% endraw %}
+          SOURCES: '[{% for id in sources %}"{{ id }}"{% if not loop.last %},{% endif %}{% endfor %}]'
+          INTEGRATIONS: '[{% for id in integrations %}"{{ id }}"{% if not loop.last %},{% endif %}{% endfor %}]'
         run: |
           set -euo pipefail
           for id in $(jq -r '.[]' <<< "$SOURCES"); do
