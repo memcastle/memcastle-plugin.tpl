@@ -33,7 +33,8 @@ review `git tpl diff --json`, and run `git tpl merge --json`.
 trees can be offered when stable binaries are published, with the Core setup action resolving their latest patch.
 Put a Core binary with `plugin package` and `plugin test` on PATH before running it locally;
 the empty and mixed cases build and smoke-test actual archives in disposable GitTPL sandboxes.
-The template CI downloads the verified Core `main` development binary and installs Rust, `wasm32-wasip2` and Bun.
+The template CI installs the verified Core `main` development binary, GitTPL 0.14.3 through its setup action,
+Rust, `wasm32-wasip2` and Bun.
 The Core version used for validation must support both typed module roots; earlier released plugin archives under
 `modules/<id>/` remain installable.
 
