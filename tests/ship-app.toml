@@ -9,7 +9,7 @@ sources = []
 integrations = []
 
 [expect]
-files = [".github/ship.yml", ".github/workflows/ship.yml", ".github/workflows/prepare-release.yml", ".github/workflows/publish-release.yml", "cliff.toml", "mise.toml", ".github/workflows/ci.yaml", ".github/codecov.yml"]
+files = ["README.md", "CONTRIBUTING.md", "AGENTS.md", ".github/ship.yml", ".github/workflows/ship.yml", ".github/workflows/prepare-release.yml", ".github/workflows/publish-release.yml", "cliff.toml", "mise.toml", ".github/workflows/ci.yaml", ".github/codecov.yml"]
 absent = ["scripts/prepare_release.py", "tests/test_release.py", ".github/workflows/plugin.yml", ".github/workflows/release.yml"]
 
 [expect.contains]
@@ -17,6 +17,8 @@ absent = ["scripts/prepare_release.py", "tests/test_release.py", ".github/workfl
 ".github/workflows/prepare-release.yml" = ["dry_run:", "ship-release"]
 ".github/workflows/publish-release.yml" = ["version: development"]
 ".github/codecov.yml" = ['target: "80%"', "threshold: 0%", 'layout: reach,diff,flags,components,files']
+"README.md" = ["Releases use gh-ship and git-cliff", "APP_CLIENT_ID", "## Contributing"]
+"CONTRIBUTING.md" = ["Use releasable Conventional Commits", "release/next"]
 
 [expect.lacks]
 ".github/codecov.yml" = ["target: auto", "flags:", "component_management:"]

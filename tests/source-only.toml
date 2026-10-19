@@ -10,12 +10,15 @@ codecov_covered_sources = ["directory"]
 source_template = "../memcastle-source.tpl"
 
 [expect]
-files = [".github/workflows/ci.yaml", "sources/directory/Cargo.toml", "sources/directory/memcastle-source.toml", ".github/codecov.yml"]
+files = ["README.md", "CONTRIBUTING.md", "AGENTS.md", ".github/workflows/ci.yaml", "sources/directory/Cargo.toml", "sources/directory/memcastle-source.toml", ".github/codecov.yml"]
 absent = ["manifest.toml", "integrations/directory/memcastle-integration.toml", "scripts/package.py", "scripts/coverage.py", "tests/test_manifest.py", ".github/workflows/plugin.yml"]
 
 [expect.contains]
 ".github/workflows/ci.yaml" = ["cargo llvm-cov nextest", "report_type: test_results", "memcastle plugin package", 'core: ["development"]', "version: development"]
 ".github/codecov.yml" = ['target: "73%"', 'target: "70%"', 'source-directory:', 'paths: ["sources/directory/src/**"]', 'target: "66%"', 'carryforward: false']
+"README.md" = ["It includes source modules", "cargo build --manifest-path sources/<id>/Cargo.toml", "Project and patch targets are `73%` and `70%`"]
+"AGENTS.md" = ["Source implementations and tests live under `sources/<id>/`", "This render has no agent integrations"]
 
 [expect.lacks]
 ".github/codecov.yml" = ["target: auto", "integration-directory:", "informational: true"]
+"README.md" = ["It includes agent integrations", "For each integration with a `package.json`"]
