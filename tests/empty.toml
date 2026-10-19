@@ -16,3 +16,4 @@ rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh empty"]
 
 [expect.contains]
 ".github/workflows/ci.yaml" = ['core: ["development"]', 'core-version: ${{ matrix.core }}', 'version: development']
+"README.md" = ['core_versions` (default `development`)', '`development` uses the moving prerelease']
