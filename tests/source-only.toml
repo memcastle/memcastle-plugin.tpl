@@ -14,7 +14,7 @@ files = [".github/workflows/ci.yaml", "sources/directory/Cargo.toml", "sources/d
 absent = ["manifest.toml", "integrations/directory/memcastle-integration.toml", "scripts/package.py", "scripts/coverage.py", "tests/test_manifest.py", ".github/workflows/plugin.yml"]
 
 [expect.contains]
-".github/workflows/ci.yaml" = ["cargo llvm-cov nextest", "report_type: test_results", "memcastle plugin package"]
+".github/workflows/ci.yaml" = ["cargo llvm-cov nextest", "report_type: test_results", "memcastle plugin package", 'core: ["development"]', "version: development"]
 ".github/codecov.yml" = ['target: "73%"', 'target: "70%"', 'source-directory:', 'paths: ["sources/directory/src/**"]', 'target: "66%"', 'carryforward: false']
 
 [expect.lacks]
