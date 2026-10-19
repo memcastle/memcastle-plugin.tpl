@@ -1,0 +1,15 @@
+[answers]
+plugin_id = "vector"
+embeddings = ["vector-one"]
+embedding_template = "../memcastle-embedding-provider.tpl"
+
+[expect]
+files = ["plugin.toml", "embeddings/vector-one/Cargo.toml", "embeddings/vector-one/wit/memcastle-embedding.wit", "embeddings/vector-one/memcastle-embedding.toml", ".github/workflows/ci.yaml"]
+absent = ["sources/vector-one/memcastle-source.toml", "integrations/vector-one/memcastle-integration.toml"]
+
+[expect.contains]
+"plugin.toml" = ['type = "embedding_provider"', 'manifest = "embeddings/vector-one/memcastle-embedding.toml"', 'contract = "0.1.0"']
+".github/workflows/ci.yaml" = ["name: embedding-vector-one", "path: embeddings/vector-one/", "cargo build --manifest-path"]
+
+[commands]
+rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh vector"]

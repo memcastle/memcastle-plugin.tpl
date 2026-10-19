@@ -113,6 +113,13 @@ default = []
 item_pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"
 item_message = "use lowercase words, numbers and hyphens for each integration ID"
 
+[questions.embeddings]
+type = "list"
+prompt = "Embedding-provider module IDs (empty for none)"
+default = []
+item_pattern = "^[a-z0-9]+(-[a-z0-9]+)*$"
+item_message = "use lowercase words, numbers and hyphens for each embedding ID"
+
 [computed]
 codecov_source_choices = "{{ sources }}"
 codecov_integration_choices = "{{ integrations }}"
@@ -131,7 +138,7 @@ default = []
 choices_from = "codecov_integration_choices"
 when = "{{ codecov }}"
 
-# Each rendering records the resolved child-main commits for reviewable provider updates.
+# Renderings record resolved revisions; new projects follow each child's main branch.
 [questions.source_template]
 type = "string"
 prompt = "Source module template repository"
@@ -141,6 +148,11 @@ default = "https://github.com/memcastle/memcastle-source.tpl"
 type = "string"
 prompt = "Integration module template repository"
 default = "https://github.com/memcastle/memcastle-integration.tpl"
+
+[questions.embedding_template]
+type = "string"
+prompt = "Embedding-provider module template repository"
+default = "https://github.com/memcastle/memcastle-embedding-provider.tpl"
 
 [[compose]]
 source = "{{ source_template }}"
@@ -153,3 +165,9 @@ source = "{{ integration_template }}"
 ref = "main"
 from = "integrations"
 path = "integrations"
+
+[[compose]]
+source = "{{ embedding_template }}"
+ref = "main"
+from = "embeddings"
+path = "embeddings"

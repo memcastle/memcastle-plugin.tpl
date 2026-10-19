@@ -17,6 +17,6 @@ rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh empty"]
 
 [expect.contains]
 ".github/workflows/ci.yaml" = ['core: ["development"]', 'core-version: ${{ matrix.core }}', 'version: development']
-"README.md" = ["## Install", "memcastle plugin install ./empty-VERSION.tar.gz", "## Build and test locally", "Add a source or integration module"]
+"README.md" = ["## Install", "memcastle plugin install ./empty-VERSION.tar.gz", "## Build and test locally", "Add a source, integration or embedding-provider module"]
 "CONTRIBUTING.md" = ["There are no modules yet", "tag a reviewed `main` commit"]
 "AGENTS.md" = ["This render has no source modules", "This render has no agent integrations"]

@@ -29,6 +29,15 @@ for id in $(jq -r '.modules[] | select(.type == "integration") | .id' .plugin-te
   fi
 done
 
+for id in $(jq -r '.modules[] | select(.type == "embedding_provider") | .id' .plugin-test-inventory.json); do
+  module="$PWD/embeddings/$id"
+  cargo generate-lockfile --manifest-path "$module/Cargo.toml"
+  cargo test --manifest-path "$module/Cargo.toml" --locked --lib
+  cargo build --manifest-path "$module/Cargo.toml" --locked --target wasm32-wasip2
+  crate="$(cargo metadata --no-deps --format-version 1 --manifest-path "$module/Cargo.toml" | jq -er '.packages[0].targets[] | select(.kind | index("cdylib")) | .name')"
+  cp "${CARGO_TARGET_DIR:-$module/target}/wasm32-wasip2/debug/$crate.wasm" "$module/embedding.wasm"
+done
+
 before="$(sha256sum plugin.toml)"
 memcastle plugin package --json > .plugin-test-package.json
 test "$before" = "$(sha256sum plugin.toml)"

@@ -22,6 +22,11 @@ jobs:
           repository: memcastle/memcastle-integration.tpl
           ref: main
           path: memcastle-integration.tpl
+      - uses: actions/checkout@v7
+        with:
+          repository: memcastle/memcastle-embedding-provider.tpl
+          ref: main
+          path: memcastle-embedding-provider.tpl
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-wasip2
@@ -36,7 +41,7 @@ jobs:
       - uses: noirbizarre/git-tpl@main
         with:
           version: 0.14.3
-      - name: Test empty and mixed rendering
+      - name: Test empty, mixed and embedding rendering
         working-directory: memcastle-plugin.tpl
         run: |
           set -euo pipefail

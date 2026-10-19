@@ -10,10 +10,11 @@
 {{ description }}
 
 This is a versioned MemCastle provider plugin.
-{% if sources and integrations %}It includes source modules and agent integrations.
+{% if embeddings %}It includes embedding-provider modules.
+{% endif %}{% if sources and integrations %}It includes source modules and agent integrations.
 {% elif sources %}It includes source modules.
 {% elif integrations %}It includes agent integrations.
-{% else %}Add a source or integration module when you're ready to provide one.
+{% elif not embeddings %}Add a source, integration or embedding-provider module when you're ready to provide one.
 {% endif %}
 ## Install
 
@@ -43,12 +44,14 @@ The archive is the installation unit; you don't need to fetch its modules separa
 After installation, explicitly enable the sources you want to use.
 {% endif %}{% if integrations %}
 Register integrations with your agent separately; installing the archive alone does not configure an agent.
+{% endif %}{% if embeddings %}
+Select an embedding provider through a named embedding connection after installing the plugin.
 {% endif %}
 ## Build and test locally
 
 You'll need a plugin-capable MemCastle Core binary and Git.
-{% if sources %}
-Install Rust with the `wasm32-wasip2` target for source modules.
+{% if sources or embeddings %}
+Install Rust with the `wasm32-wasip2` target for source and embedding modules.
 {% endif %}{% if integrations %}Install Bun for agent integrations.
 {% endif %}
 {% if sources %}For each source, run its tests, build the Wasm component and copy the compiled component
@@ -59,6 +62,15 @@ See the module's README and the CI workflow for its crate-specific artifact name
 cargo generate-lockfile --manifest-path sources/<id>/Cargo.toml
 cargo test --manifest-path sources/<id>/Cargo.toml --locked --lib
 cargo build --manifest-path sources/<id>/Cargo.toml --locked --release --target wasm32-wasip2
+```
+
+{% endif %}{% if embeddings %}For each embedding provider, run its native tests and build its component
+to `embeddings/<id>/embedding.wasm`:
+
+```sh
+cargo generate-lockfile --manifest-path embeddings/<id>/Cargo.toml
+cargo test --manifest-path embeddings/<id>/Cargo.toml --locked --lib
+cargo build --manifest-path embeddings/<id>/Cargo.toml --locked --release --target wasm32-wasip2
 ```
 
 {% endif %}{% if integrations %}For each integration with a `package.json`,
@@ -98,6 +110,7 @@ Outside a Git checkout, pass `--version` when packaging.
 | `plugin.toml` | Plugin identity, supported Core versions and module entries. |
 {% if sources %}| `sources/<id>/` | Rust/Wasm source modules, each with its own manifest and tests. |
 {% endif %}{% if integrations %}| `integrations/<id>/` | Agent integrations and their own assets or builds. |
+{% endif %}{% if embeddings %}| `embeddings/<id>/` | Rust/Wasm embedding providers and model manifests. |
 {% endif %}| `dist/` | Generated release archive and checksum after packaging. |
 
 {% if sources and integrations %}Source and integration IDs may match:
