@@ -1,0 +1,14 @@
+[answers]
+plugin_id = "listed"
+registry = true
+sources = []
+integrations = []
+
+[expect]
+files = ["README.md", "CONTRIBUTING.md", "AGENTS.md", "plugin.toml"]
+
+[expect.contains]
+"README.md" = ["memcastle plugin install listed", "Core retrieves and checks the release archive"]
+
+[expect.lacks]
+"README.md" = ["memcastle plugin install ./listed-VERSION.tar.gz"]

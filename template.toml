@@ -33,6 +33,11 @@ type = "string"
 prompt = "Repository name"
 default = "memcastle-{{ plugin_id }}"
 
+[questions.registry]
+type = "boolean"
+prompt = "Is this plugin listed in the reviewed MemCastle plugin catalogue?"
+default = false
+
 [questions.codecov]
 type = "boolean"
 prompt = "Upload module test coverage to Codecov?"

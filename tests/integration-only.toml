@@ -8,13 +8,16 @@ codecov_covered_integrations = ["opencode"]
 integration_template = "../memcastle-integration.tpl"
 
 [expect]
-files = ["plugin.toml", "integrations/opencode/memcastle-integration.toml", "integrations/opencode/dist/index.js", "integrations/opencode/scripts/check_format.mjs", ".github/workflows/ci.yaml", ".github/codecov.yml"]
+files = ["plugin.toml", "README.md", "CONTRIBUTING.md", "AGENTS.md", "integrations/opencode/memcastle-integration.toml", "integrations/opencode/dist/index.js", "integrations/opencode/scripts/check_format.mjs", ".github/workflows/ci.yaml", ".github/codecov.yml"]
 absent = ["manifest.toml", "sources/opencode/memcastle-source.toml", "integrations/opencode/scripts/check_format.py", ".github/workflows/plugin.yml", "scripts/package.py", "scripts/check_modules.py"]
 
 [expect.contains]
 ".github/workflows/ci.yaml" = ["bun test --timeout 60000 --coverage", "report_type: test_results", "integration-", "version: development"]
 ".github/codecov.yml" = ['target: "80%"', 'integration-opencode:', 'paths: ["integrations/opencode/src/**"]', 'target: "77%"', 'carryforward: false']
+"README.md" = ["It includes agent integrations", "bun test --timeout 60000", "## Install"]
+"AGENTS.md" = ["This render has no source modules", "Agent integration implementations live under `integrations/<id>/`"]
 
 [expect.lacks]
 "plugin.toml" = ["version =", "sha256 ="]
 ".github/codecov.yml" = ["target: auto", "source-opencode:", "informational: true"]
+"README.md" = ["It includes source modules", "For each source, run its tests"]
