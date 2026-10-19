@@ -15,6 +15,7 @@ absent = ["scripts/prepare_release.py", "tests/test_release.py", ".github/workfl
 [expect.contains]
 ".github/workflows/ship.yml" = ["actions/create-github-app-token@v3", "steps.app-token.outputs.token"]
 ".github/workflows/prepare-release.yml" = ["dry_run:", "ship-release"]
+".github/workflows/publish-release.yml" = ["version: development"]
 ".github/codecov.yml" = ['target: "80%"', "threshold: 0%", 'layout: reach,diff,flags,components,files']
 
 [expect.lacks]

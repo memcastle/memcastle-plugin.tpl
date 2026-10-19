@@ -15,4 +15,4 @@ rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh empty"]
 "plugin.toml" = ["version =", "sha256 =", "manifest_sha256 ="]
 
 [expect.contains]
-".github/workflows/ci.yaml" = ['core: ["main"]', 'core-version: ${{ matrix.core }}']
+".github/workflows/ci.yaml" = ['core: ["development"]', 'core-version: ${{ matrix.core }}', 'version: development']

@@ -29,11 +29,11 @@ before merging its new rendering; a child update is never silently applied to an
 Existing projects retain their recorded commits until they explicitly run `git tpl update --defaults --json`,
 review `git tpl diff --json`, and run `git tpl merge --json`.
 `git tpl test` checks empty and mixed renders, typed modules, conditional CI and child composition.
-`core_versions` selects a static Core validation matrix. It defaults to `main`; plugin-capable minor/major release
+`core_versions` selects a static Core validation matrix. It defaults to `development`; plugin-capable minor/major release
 trees can be offered when stable binaries are published, with the Core setup action resolving their latest patch.
 Put a Core binary with `plugin package` and `plugin test` on PATH before running it locally;
 the empty and mixed cases build and smoke-test actual archives in disposable GitTPL sandboxes.
-The template CI installs the verified Core `main` development binary, GitTPL 0.14.3 through its setup action,
+The template CI installs the verified Core `development` binary, GitTPL 0.14.3 through its setup action,
 Rust, `wasm32-wasip2` and Bun.
 The Core version used for validation must support both typed module roots; earlier released plugin archives under
 `modules/<id>/` remain installable.
@@ -58,7 +58,7 @@ They run once for every pull request and for every push to `main`, including mer
 trigger a second build.
 Each provider owns the build, packaging and release jobs in its repository;
 the release workflow reuses its provider-specific validation before publishing.
-The `core_versions` answer defaults the static compatibility matrix to the permanent `main` prerelease,
+The `core_versions` answer defaults the static compatibility matrix to the permanent `development` prerelease,
 whose source SHA is recorded in its release body. Plugin-capable stable release trees can be offered as they appear.
 Every matrix leg runs source fixtures and the archive installation/activation smoke test; Core 0.4.1 predates plugin
 installation and is therefore not a compatible matrix entry.

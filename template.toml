@@ -77,9 +77,9 @@ default_when_skipped = true
 [questions.core_versions]
 type = "multi_choice"
 prompt = "Core releases to validate"
-help = "Select main and, when available, plugin-capable minor/major release trees (latest stable patch)"
-choices = ["main"]
-default = ["main"]
+help = "Select development and, when available, plugin-capable minor/major release trees (latest stable patch)"
+choices = ["development"]
+default = ["development"]
 
 [questions.gh_ship]
 type = "boolean"

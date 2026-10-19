@@ -12,7 +12,7 @@ files = ["plugin.toml", "integrations/opencode/memcastle-integration.toml", "int
 absent = ["manifest.toml", "sources/opencode/memcastle-source.toml", "integrations/opencode/scripts/check_format.py", ".github/workflows/plugin.yml", "scripts/package.py", "scripts/check_modules.py"]
 
 [expect.contains]
-".github/workflows/ci.yaml" = ["bun test --timeout 60000 --coverage", "report_type: test_results", "integration-"]
+".github/workflows/ci.yaml" = ["bun test --timeout 60000 --coverage", "report_type: test_results", "integration-", "version: development"]
 ".github/codecov.yml" = ['target: "80%"', 'integration-opencode:', 'paths: ["integrations/opencode/src/**"]', 'target: "77%"', 'carryforward: false']
 
 [expect.lacks]
