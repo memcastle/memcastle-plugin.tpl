@@ -63,9 +63,9 @@ Omitted answers use the defaults below. `plugin_id` is the only required answer.
 | `sources` | `[]` | Source module IDs; each renders in `sources/<id>/`. |
 | `integrations` | `[]` | Agent integration IDs; each renders in `integrations/<id>/`. |
 | `embeddings` | `[]` | Embedding-provider IDs; each renders in `embeddings/<id>/`. |
-| `source_template` | [memcastle-source.tpl] | Source child-template location; the reviewed commit is composed. |
-| `integration_template` | [memcastle-integration.tpl] | Integration child-template location at a reviewed commit. |
-| `embedding_template` | [memcastle-embedding-provider.tpl] | Embedding child-template location at a reviewed commit. |
+| `source_template` | [memcastle-source.tpl] | Source child-template location; `main` is resolved when rendered. |
+| `integration_template` | [memcastle-integration.tpl] | Integration child-template location; `main` is resolved when rendered. |
+| `embedding_template` | [memcastle-embedding-provider.tpl] | Embedding child-template location; `main` is resolved when rendered. |
 | `core_versions` | `["development"]` | Core validation matrix. Currently only `development` is offered. |
 | `codecov` | `false` | Enable Codecov coverage and test-result uploads. |
 | `codecov_project_target` | `80%` | Overall coverage floor when `codecov` is enabled. |
@@ -95,8 +95,9 @@ The generated README explains repository setup for the selected release and cove
 ## Keep a project up to date
 
 git-tpl records the exact resolved commits of the parent and child templates in the project.
-Updates are explicit; new child `main` commits do not silently change existing plugins or new parent renderings.
-Advance the three `[[compose]].ref` full commits and matching CI checkout refs together after reviewing child changes.
+Updates are explicit for existing plugins: new child `main` commits affect fresh renderings but never silently change
+an existing plugin until its owner reviews and merges the updated recorded revisions.
+The parent template CI checks each child's current `main` alongside its own rendering cases.
 
 In a generated repository:
 

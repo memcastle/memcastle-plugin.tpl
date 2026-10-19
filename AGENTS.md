@@ -4,7 +4,7 @@
 - Treat `template.toml` as the source of truth for questions, defaults and child composition.
   Edit `template/*.jinja` for generated prose and metadata;
   do not edit a rendered provider as a substitute.
-- Three pinned child templates provide module implementations.
+- Three independently maintained child templates provide module implementations.
   `sources`, `integrations` and `embeddings` can each be empty, and IDs can overlap across types.
   Check all relevant conditional paths before adding unconditional claims.
 - Keep template-only guidance here and provider guidance in `template/AGENTS.md.jinja`

@@ -138,7 +138,7 @@ default = []
 choices_from = "codecov_integration_choices"
 when = "{{ codecov }}"
 
-# Review each child revision with the parent tests before advancing these pins together.
+# Renderings record resolved revisions; new projects follow each child's main branch.
 [questions.source_template]
 type = "string"
 prompt = "Source module template repository"
@@ -156,18 +156,18 @@ default = "https://github.com/memcastle/memcastle-embedding-provider.tpl"
 
 [[compose]]
 source = "{{ source_template }}"
-ref = "5f2a8350bd82c49ec2370d70c83019ff6fc5a822"
+ref = "main"
 from = "sources"
 path = "sources"
 
 [[compose]]
 source = "{{ integration_template }}"
-ref = "d055d87eeba173e56ba0c84bc25c8ddeaeeaa0da"
+ref = "main"
 from = "integrations"
 path = "integrations"
 
 [[compose]]
 source = "{{ embedding_template }}"
-ref = "f6a256a1aefe94989661ef9014791482cef792a9"
+ref = "main"
 from = "embeddings"
 path = "embeddings"

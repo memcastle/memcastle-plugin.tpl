@@ -15,17 +15,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: memcastle/memcastle-source.tpl
-          ref: 5f2a8350bd82c49ec2370d70c83019ff6fc5a822
+          ref: main
           path: memcastle-source.tpl
       - uses: actions/checkout@v4
         with:
           repository: memcastle/memcastle-integration.tpl
-          ref: d055d87eeba173e56ba0c84bc25c8ddeaeeaa0da
+          ref: main
           path: memcastle-integration.tpl
       - uses: actions/checkout@v7
         with:
           repository: memcastle/memcastle-embedding-provider.tpl
-          ref: f6a256a1aefe94989661ef9014791482cef792a9
+          ref: main
           path: memcastle-embedding-provider.tpl
       - uses: dtolnay/rust-toolchain@stable
         with:
