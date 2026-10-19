@@ -26,3 +26,11 @@ type = "integration"
 manifest = "integrations/{{ id }}/memcastle-integration.toml"
 entry = "integrations/{{ id }}/dist/index.js"
 {% endfor %}
+{% for id in embeddings %}
+[[modules]]
+id = "{{ id }}"
+type = "embedding_provider"
+manifest = "embeddings/{{ id }}/memcastle-embedding.toml"
+entry = "embeddings/{{ id }}/embedding.wasm"
+contract = "0.1.0"
+{% endfor %}

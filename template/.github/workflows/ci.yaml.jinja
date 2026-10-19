@@ -186,10 +186,45 @@ jobs:
           include-hidden-files: true
 
 {% endif %}
+{% if embeddings %}
+  embedding:
+    name: 🧠 Embedding {% raw %}${{ matrix.embedding }}{% endraw %}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        embedding: [{% for id in embeddings %}"{{ id }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: {% raw %}${{ inputs.tag || github.sha }}{% endraw %}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip2
+      - uses: Swatinem/rust-cache@v2
+      - name: Test and build embedding component
+        env:
+          MODULE: {% raw %}${{ matrix.embedding }}{% endraw %}
+        run: |
+          set -euo pipefail
+          module_dir="$PWD/embeddings/$MODULE"
+          cargo fmt --manifest-path "$module_dir/Cargo.toml" --all -- --check
+          cargo test --manifest-path "$module_dir/Cargo.toml" --locked --lib
+          cargo clippy --manifest-path "$module_dir/Cargo.toml" --locked --target wasm32-wasip2 -- -D warnings
+          cargo build --manifest-path "$module_dir/Cargo.toml" --locked --release --target wasm32-wasip2
+          crate="$(cargo metadata --no-deps --format-version 1 --manifest-path "$module_dir/Cargo.toml" | jq -er '.packages[0].targets[] | select(.kind | index("cdylib")) | .name')"
+          cp "$module_dir/target/wasm32-wasip2/release/$crate.wasm" "$module_dir/embedding.wasm"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: embedding-{% raw %}${{ matrix.embedding }}{% endraw %}
+          path: embeddings/{% raw %}${{ matrix.embedding }}{% endraw %}/embedding.wasm
+          if-no-files-found: error
+
+{% endif %}
   package:
     name: 🏗️ Package
-{% if sources or integrations %}
-    needs: [{% if sources %}source{% endif %}{% if sources and integrations %}, {% endif %}{% if integrations %}integration{% endif %}]
+{% if sources or integrations or embeddings %}
+    needs: [{% if sources %}source{% endif %}{% if sources and integrations %}, {% endif %}{% if integrations %}integration{% endif %}{% if (sources or integrations) and embeddings %}, {% endif %}{% if embeddings %}embedding{% endif %}]
 {% endif %}
     runs-on: ubuntu-latest
     permissions:
@@ -214,6 +249,12 @@ jobs:
         with:
           name: integration-{{ id }}
           path: integrations/{{ id }}/dist/
+{% endfor %}
+{% for id in embeddings %}
+      - uses: actions/download-artifact@v8
+        with:
+          name: embedding-{{ id }}
+          path: embeddings/{{ id }}/
 {% endfor %}
       - name: Package plugin
         run: memcastle plugin package

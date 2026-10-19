@@ -16,17 +16,20 @@ and build its component to `sources/<id>/source.wasm` before packaging.
 Agent integrations live under `integrations/<id>/`.
 Follow each module's own setup and tests, and build its assets into `integrations/<id>/dist/`
 when it has a `package.json`.
-{% endif %}{% if not sources and not integrations %}There are no modules yet.
+{% endif %}{% if embeddings %}Embedding providers live under `embeddings/<id>/`.
+Keep their model list in sync with the component's `models()` export and commit each module's `Cargo.lock`.
+Build `embedding.wasm` before packaging.
+{% endif %}{% if not sources and not integrations and not embeddings %}There are no modules yet.
 Add module IDs through the template's recorded answers before writing their implementations.
 {% endif %}{% if sources and integrations %}The source and integration trees are independent, even when an ID is shared.
 {% endif %}
 ## Check a change
 
 Install a plugin-capable MemCastle Core binary.
-{% if sources %}For sources, install Rust with the `wasm32-wasip2` target.
+{% if sources or embeddings %}For source and embedding modules, install Rust with the `wasm32-wasip2` target.
 {% endif %}{% if integrations %}For integrations, install Bun.
 {% endif %}
-{% if sources or integrations %}Run the affected module's tests and build, then from the project root:
+{% if sources or integrations or embeddings %}Run the affected module's tests and build, then from the project root:
 {% else %}With no modules yet, check and package the descriptor from the project root:
 {% endif %}
 ```sh
