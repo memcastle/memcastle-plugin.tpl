@@ -15,12 +15,13 @@ absent = ["scripts/prepare_release.py", "tests/test_release.py", ".github/workfl
 [expect.contains]
 ".github/workflows/ship.yml" = ["actions/create-github-app-token@v3", "steps.app-token.outputs.token"]
 ".github/workflows/prepare-release.yml" = ["dry_run:", "ship-release"]
-".github/workflows/publish-release.yml" = ["version: development"]
+".github/workflows/publish-release.yml" = ["version: development", "actions/create-github-app-token@v3", "client-id: ${{ vars.APP_CLIENT_ID }}", "private-key: ${{ secrets.APP_PRIVATE_KEY }}", "GH_TOKEN: ${{ steps.app-token.outputs.token }}"]
 ".github/codecov.yml" = ['target: "80%"', "threshold: 0%", 'layout: reach,diff,flags,components,files']
 "README.md" = ["Releases use gh-ship and git-cliff", "APP_CLIENT_ID", "## Contributing"]
 "CONTRIBUTING.md" = ["Use releasable Conventional Commits", "release/next"]
 
 [expect.lacks]
+".github/workflows/publish-release.yml" = ["id-token: write", "GH_TOKEN: ${{ github.token }}", "secrets.SHIP_TOKEN"]
 ".github/codecov.yml" = ["target: auto", "flags:", "component_management:"]
 
 [commands]
