@@ -56,7 +56,7 @@ Omitted answers use the defaults below. `plugin_id` is the only required answer.
 | `plugin_id` | **Required** | Stable plugin ID: lowercase words, numbers and hyphens. |
 | `description` | `A MemCastle provider plugin` | Short description in the generated README and descriptor. |
 | `provider` | `plugin_id` | Provider family recorded in `plugin.toml`. |
-| `memcastle` | `>=0.4, <0.6` | Supported Core version constraint in the descriptor. |
+| `memcastle` | `>=0.5, <0.6` | Supported Core version constraint in the descriptor. |
 | `github_owner` | `memcastle` | Repository owner used in badges and metadata. |
 | `repository_name` | `memcastle-<plugin_id>` | Repository name used in badges and metadata. |
 | `registry` | `false` | Show one-command installation when listed in Core's reviewed plugin catalogue. |
@@ -66,7 +66,7 @@ Omitted answers use the defaults below. `plugin_id` is the only required answer.
 | `source_template` | [memcastle-source.tpl] | Source child-template location; `main` is resolved when rendered. |
 | `integration_template` | [memcastle-integration.tpl] | Integration child-template location; `main` is resolved when rendered. |
 | `embedding_template` | [memcastle-embedding-provider.tpl] | Embedding child-template location; `main` is resolved when rendered. |
-| `core_versions` | `["development"]` | Core validation matrix. Currently only `development` is offered. |
+| `core_versions` | `["development", "0.5"]` | Core validation matrix; `0.5` selects the latest stable patch. |
 | `codecov` | `false` | Enable Codecov coverage and test-result uploads. |
 | `codecov_project_target` | `80%` | Overall coverage floor when `codecov` is enabled. |
 | `codecov_patch_target` | `80%` | Changed-code coverage floor when `codecov` is enabled. |

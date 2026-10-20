@@ -21,7 +21,7 @@ default = "{{ plugin_id }}"
 [questions.memcastle]
 type = "string"
 prompt = "Supported MemCastle versions"
-default = ">=0.4, <0.6"
+default = ">=0.5, <0.6"
 
 [questions.github_owner]
 type = "string"
@@ -83,8 +83,8 @@ default_when_skipped = true
 type = "multi_choice"
 prompt = "Core releases to validate"
 help = "Select development and, when available, plugin-capable minor/major release trees (latest stable patch)"
-choices = ["development"]
-default = ["development"]
+choices = ["development", "0.5"]
+default = ["development", "0.5"]
 
 [questions.gh_ship]
 type = "boolean"
