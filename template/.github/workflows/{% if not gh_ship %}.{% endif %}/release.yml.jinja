@@ -11,6 +11,11 @@ permissions:
 jobs:
   validate:
     name: 🧪 Validate release
+{% if codecov and (sources or integrations) %}
+    permissions:
+      contents: read
+      id-token: write
+{% endif %}
     uses: ./.github/workflows/ci.yaml
 
   publish:

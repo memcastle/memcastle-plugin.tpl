@@ -13,6 +13,11 @@ permissions:
 jobs:
   validate:
     name: 🧪 Validate release archive
+{% if codecov and (sources or integrations) %}
+    permissions:
+      contents: read
+      id-token: write
+{% endif %}
     uses: ./.github/workflows/ci.yaml
     with:
       tag: {% raw %}${{ inputs.tag }}{% endraw %}
@@ -26,6 +31,13 @@ jobs:
       name: release
       url: {% raw %}${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ inputs.tag }}{% endraw %}
     steps:
+{% if ship_token == "app" %}
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: {% raw %}${{ vars.APP_CLIENT_ID }}{% endraw %}
+          private-key: {% raw %}${{ secrets.APP_PRIVATE_KEY }}{% endraw %}
+{% endif %}
       - uses: actions/checkout@v7
         with:
           ref: {% raw %}${{ inputs.tag }}{% endraw %}
@@ -36,7 +48,7 @@ jobs:
           version: development
       - name: Require reviewed tag on main and existing draft
         env:
-          GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
+          GH_TOKEN: {% if ship_token == "app" %}{% raw %}${{ steps.app-token.outputs.token }}{% endraw %}{% else %}{% raw %}${{ secrets.SHIP_TOKEN }}{% endraw %}{% endif %}
           TAG: {% raw %}${{ inputs.tag }}{% endraw %}
         run: |
           set -euo pipefail
@@ -50,7 +62,7 @@ jobs:
           name: plugin-package
       - name: Upload validated archive
         env:
-          GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
+          GH_TOKEN: {% if ship_token == "app" %}{% raw %}${{ steps.app-token.outputs.token }}{% endraw %}{% else %}{% raw %}${{ secrets.SHIP_TOKEN }}{% endraw %}{% endif %}
           TAG: {% raw %}${{ inputs.tag }}{% endraw %}
         run: |
           set -euo pipefail

@@ -14,6 +14,7 @@ rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh empty"]
 [expect.lacks]
 "plugin.toml" = ["version =", "sha256 =", "manifest_sha256 ="]
 "README.md" = ["memcastle plugin install empty"]
+".github/workflows/release.yml" = ["id-token: write"]
 
 [expect.contains]
 ".github/workflows/ci.yaml" = ['core: ["development"]', 'core-version: ${{ matrix.core }}', 'version: development']

@@ -12,5 +12,9 @@ absent = ["scripts/prepare_release.py", "tests/test_release.py", ".github/workfl
 [expect.contains]
 ".github/workflows/ship.yml" = ["secrets.SHIP_TOKEN"]
 ".github/workflows/prepare-release.yml" = ["dry_run:", "ship-release"]
+".github/workflows/publish-release.yml" = ["GH_TOKEN: ${{ secrets.SHIP_TOKEN }}"]
 "README.md" = ["secret `SHIP_TOKEN`", "release/next"]
 "CONTRIBUTING.md" = ["Use releasable Conventional Commits"]
+
+[expect.lacks]
+".github/workflows/publish-release.yml" = ["id-token: write", "actions/create-github-app-token", "GH_TOKEN: ${{ github.token }}"]

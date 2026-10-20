@@ -1,0 +1,14 @@
+[answers]
+plugin_id = "example"
+codecov = true
+sources = ["directory"]
+integrations = []
+source_template = "../memcastle-source.tpl"
+
+[expect]
+files = [".github/workflows/release.yml", ".github/workflows/ci.yaml"]
+absent = [".github/workflows/publish-release.yml"]
+
+[expect.contains]
+".github/workflows/release.yml" = ["id-token: write", "uses: ./.github/workflows/ci.yaml"]
+".github/workflows/ci.yaml" = ["id-token: write", "use_oidc: true"]

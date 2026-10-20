@@ -24,6 +24,7 @@ rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh example
 ".github/codecov.yml" = ["source-jira:", "source-confluence:", "integration-assistant:", 'paths: ["sources/jira/src/**"]', 'paths: ["integrations/assistant/src/**"]', "informational: true", 'layout: reach,diff,flags,components,files']
 "README.md" = ["It includes source modules and agent integrations", "Source and integration IDs may match", "memcastle plugin install example", "## Contributing"]
 "CONTRIBUTING.md" = ["Rust/Wasm sources live under `sources/<id>/`", "Agent integrations live under `integrations/<id>/`", "codecov_covered_sources"]
+".github/workflows/release.yml" = ["id-token: write", "uses: ./.github/workflows/ci.yaml"]
 
 [expect.lacks]
 "plugin.toml" = ["version =", "manifest_sha256 =", "sha256 ="]
