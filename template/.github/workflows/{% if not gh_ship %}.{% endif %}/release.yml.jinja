@@ -3,7 +3,7 @@ name: 📦 Publish release
 on:
   push:
     tags:
-      - '{{ plugin_id }}/v*'
+      - '[0-9]*.[0-9]*.[0-9]*'
 
 permissions:
   contents: read
@@ -37,7 +37,8 @@ jobs:
           GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
         run: |
           set -euo pipefail
-          expected="$(memcastle plugin inspect --json | jq -r '.plugin | "\(.id)/v\(.version)"')"
+          expected="$(memcastle plugin inspect --json | jq -er '.plugin.version')"
+          [[ "$GITHUB_REF_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo '::error::invalid release version tag'; exit 1; }
           test "$GITHUB_REF_NAME" = "$expected" || { echo '::error::tag does not match plugin.toml'; exit 1; }
           git fetch origin main
           git merge-base --is-ancestor HEAD origin/main || { echo '::error::tag must be on main'; exit 1; }
@@ -54,7 +55,8 @@ jobs:
         run: |
           set -euo pipefail
           tag="$GITHUB_REF_NAME"
-          archive="dist/${tag%/v*}-${tag##*/v}.tar.gz"
+          plugin_id="$(memcastle plugin inspect --json | jq -er '.plugin.id')"
+          archive="dist/${plugin_id}-${tag}.tar.gz"
           test -s "$archive"
           checksum="${archive%.tar.gz}.sha256sum"
           test -s "$checksum"
