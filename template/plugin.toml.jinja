@@ -17,7 +17,7 @@ id = "{{ id }}"
 type = "source"
 manifest = "sources/{{ id }}/memcastle-source.toml"
 entry = "sources/{{ id }}/source.wasm"
-contract = "0.4.0"
+contract = "0.5.0"
 {% endfor %}
 {% for id in integrations %}
 [[modules]]
@@ -32,5 +32,5 @@ id = "{{ id }}"
 type = "embedding_provider"
 manifest = "embeddings/{{ id }}/memcastle-embedding.toml"
 entry = "embeddings/{{ id }}/embedding.wasm"
-contract = "0.1.0"
+contract = "0.2.0"
 {% endfor %}

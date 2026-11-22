@@ -21,6 +21,7 @@ default = "{{ plugin_id }}"
 [questions.memcastle]
 type = "string"
 prompt = "Supported MemCastle versions"
+help = "WASI modules require migrated development Core (828f0f6 or later); the range cannot distinguish old stable 0.5.2."
 default = ">=0.5, <0.6"
 
 [questions.github_owner]
@@ -82,9 +83,9 @@ default_when_skipped = true
 [questions.core_versions]
 type = "multi_choice"
 prompt = "Core releases to validate"
-help = "Select development and, when available, plugin-capable minor/major release trees (latest stable patch)"
+help = "WASI modules currently require development; add stable release trees only after a compatible release exists."
 choices = ["development", "0.5"]
-default = ["development", "0.5"]
+default = "{{ ['development'] if sources or embeddings else ['development', '0.5'] }}"
 
 [questions.gh_ship]
 type = "boolean"

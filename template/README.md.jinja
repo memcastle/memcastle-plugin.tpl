@@ -47,11 +47,20 @@ Register integrations with your agent separately; installing the archive alone d
 {% endif %}{% if embeddings %}
 Select an embedding provider through a named embedding connection after installing the plugin.
 {% endif %}
+{% if sources or embeddings %}
+Source and embedding components require migrated development Core from commit `828f0f6` or a descendant
+(Wasmtime 50.0.3).
+Stable 0.5.2 predates this migration even though development currently reports the same version.
+The default `>=0.5, <0.6` compatibility range is transitional; tighten it when a compatible stable release exists.
+{% endif %}
 ## Build and test locally
 
 You'll need a plugin-capable MemCastle Core binary and Git.
 {% if sources or embeddings %}
-Install Rust with the `wasm32-wasip2` target for source and embedding modules.
+Install Rust 1.100+ with `rustup target add wasm32-wasip3`, wasm-tools 1.263.0, and Python 3.11+.
+These components use WASI 0.3.0, source contract 0.5.0 and embedding contract 0.2.0.
+WASI 0.3 support is experimental and does not enable `std::thread::spawn`.
+An external WASI SDK is only needed for builds that explicitly depend on it.
 {% endif %}{% if integrations %}Install Bun for agent integrations.
 {% endif %}
 {% if sources %}For each source, run its tests, build the Wasm component and copy the compiled component
@@ -61,7 +70,7 @@ See the module's README and the CI workflow for its crate-specific artifact name
 ```sh
 cargo generate-lockfile --manifest-path sources/<id>/Cargo.toml
 cargo test --manifest-path sources/<id>/Cargo.toml --locked --lib
-cargo build --manifest-path sources/<id>/Cargo.toml --locked --release --target wasm32-wasip2
+cargo build --manifest-path sources/<id>/Cargo.toml --locked --release --target wasm32-wasip3
 ```
 
 {% endif %}{% if embeddings %}For each embedding provider, run its native tests and build its component
@@ -70,7 +79,7 @@ to `embeddings/<id>/embedding.wasm`:
 ```sh
 cargo generate-lockfile --manifest-path embeddings/<id>/Cargo.toml
 cargo test --manifest-path embeddings/<id>/Cargo.toml --locked --lib
-cargo build --manifest-path embeddings/<id>/Cargo.toml --locked --release --target wasm32-wasip2
+cargo build --manifest-path embeddings/<id>/Cargo.toml --locked --release --target wasm32-wasip3
 ```
 
 {% endif %}{% if integrations %}For each integration with a `package.json`,
@@ -94,6 +103,20 @@ memcastle plugin test dist/{{ plugin_id }}-VERSION.tar.gz
 
 Replace `VERSION` with the version printed by `memcastle plugin package`
 or the name of the archive in `dist/`.
+{% if sources or embeddings %}
+Validate each built component with `python3 scripts/validate_component.py source sources/<id>/source.wasm`
+or `python3 scripts/validate_component.py embedding embeddings/<id>/embedding.wasm`, as applicable.
+{% endif %}{% if sources %}Run `memcastle source test sources/<id>` to execute its conformance fixtures through the real host.
+{% endif %}{% if embeddings %}Run each generated embedding probe against the actual archive:
+
+```sh
+python3 embeddings/<id>/tests/conformance.py --archive dist/{{ plugin_id }}-VERSION.tar.gz \
+  --plugin-id {{ plugin_id }} --module-id <id>
+```
+
+This uses an isolated daemon to execute the sample provider and check the result through Core's embedding validation.
+Adapt the sample model/profile in the helper when replacing the starter implementation.
+{% endif %}
 
 The package command reads `plugin.toml` and creates an archive with its own versioned `manifest.toml`
 plus a matching `.sha256sum` file.
@@ -120,7 +143,9 @@ their paths, artifacts and activation remain separate.
 
 CI builds the modules that exist, packages the plugin and validates its archive against MemCastle Core.
 
-The `core_versions` answer defaults to `development` and `0.5` (the latest stable patch in the 0.5 release tree).
+{% if sources or embeddings %}The `core_versions` answer defaults to `development` until a compatible stable release exists.
+{% else %}The `core_versions` answer defaults to `development` and `0.5` (the latest stable patch in the 0.5 release tree).
+{% endif %}
 Validation runs on pull requests and pushes to `main`.
 {% if codecov %}
 When modules have native tests, their jobs upload available LCOV and JUnit results to Codecov using OIDC.

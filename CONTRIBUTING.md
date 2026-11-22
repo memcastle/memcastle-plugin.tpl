@@ -7,7 +7,7 @@ and for an existing provider applying an update.
 
 ## Find the right place to edit
 
-- `template.toml` defines questions, defaults and the source/integration child compositions.
+- `template.toml` defines questions, defaults and the source/integration/embedding child compositions.
 - `template/` contains the rendered project's files.
   Jinja templates (`*.jinja`) can conditionally include documentation, workflows and metadata;
   the child templates supply the individual modules.
@@ -25,19 +25,24 @@ Keep provider-specific code in its child template rather than assuming it lives 
 
 ## Run the checks
 
-Place checkouts of `memcastle-source.tpl` and `memcastle-integration.tpl` beside this repository.
-Install git-tpl 0.14.3 or newer, a MemCastle Core build supporting `plugin package` and `plugin test`,
-Rust and its `wasm32-wasip2` target, Bun, and `jq`.
+Place checkouts of `memcastle-source.tpl`, `memcastle-integration.tpl`, and `memcastle-embedding-provider.tpl`
+beside this repository.
+Install git-tpl 0.14.3 or newer, migrated development Core from `828f0f6` or a descendant,
+Rust 1.100 and its `wasm32-wasip3` target, wasm-tools 1.263.0, Python 3.11+, Bun, and `jq`.
+Stable Core 0.5.2 is incompatible with the new components despite matching the transitional SemVer range.
+Use the updated source 0.5.0 and embedding 0.2.0 child revisions before validating the parent.
 
 The template CI also uses git-cliff for release fixtures.
 
 ```sh
-git tpl test --json
+TEMPLATE_ROOT="$PWD" git tpl test --json
 ```
 
 Read `summary.failed` in the result: it must be `0`.
 The fixture suite renders different answer sets and exercises real package and smoke-test commands
 in disposable projects.
+Component checks include WASI 0.3 validation, source execution, and embedding execution against an isolated Core daemon.
+Embedding native tests additionally check exact sample vectors and batch ordering.
 
 Review a representative rendered README and guides when changing Jinja prose or conditions,
 not just the template source.

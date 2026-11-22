@@ -13,7 +13,8 @@ rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh empty"]
 
 [expect.lacks]
 "plugin.toml" = ["version =", "sha256 =", "manifest_sha256 ="]
-"README.md" = ["memcastle plugin install empty"]
+"README.md" = ["memcastle plugin install empty", "Rust 1.100", "wasm32-wasip3"]
+".github/workflows/ci.yaml" = ["dtolnay/rust-toolchain", "wasm32-wasip3"]
 ".github/workflows/release.yml" = ["id-token: write"]
 
 [expect.contains]
