@@ -28,7 +28,7 @@ Keep provider-specific code in its child template rather than assuming it lives 
 Place checkouts of `memcastle-source.tpl`, `memcastle-integration.tpl`, and `memcastle-embedding-provider.tpl`
 beside this repository.
 Install git-tpl 0.14.3 or newer, migrated development Core from `828f0f6` or a descendant,
-Rust 1.100 and its `wasm32-wasip3` target, wasm-tools 1.263.0, Python 3.11+, Bun, and `jq`.
+Rust 1.100 and its `wasm32-wasip3` target, wasm-tools 1.263.0, Python 3.11+, Bun, mise, and `jq`.
 Stable Core 0.5.2 is incompatible with the new components despite matching the transitional SemVer range.
 Use the updated source 0.5.0 and embedding 0.2.0 child revisions before validating the parent.
 

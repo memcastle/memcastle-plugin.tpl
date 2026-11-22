@@ -25,6 +25,10 @@ Add module IDs through the template's recorded answers before writing their impl
 {% endif %}
 ## Check a change
 
+{% if sources or integrations or embeddings %}Use `mise tasks ls` to discover root module tasks for `build`, `test`, `lint`, and `format:check`.
+See the [README](README.md#root-module-tasks) for typed task names and module setup prerequisites.
+
+{% endif %}
 Install a plugin-capable MemCastle Core binary.
 {% if sources or embeddings %}For source and embedding modules, install Rust 1.100+ with `wasm32-wasip3`,
 wasm-tools 1.263.0, Python 3.11+, and migrated development Core from `828f0f6` or a descendant.

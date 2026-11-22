@@ -1,0 +1,37 @@
+# Root task configuration and optional release tooling.
+{% if gh_ship %}
+[tools]
+git-cliff = "2.12.0"
+{% endif %}{% for kind, ids, directory, artifact in [("source", sources, "sources", "source"), ("embedding", embeddings, "embeddings", "embedding")] %}{% for id in ids %}
+[tasks."{{ kind }}:{{ id }}:format:check"]
+description = "Check formatting for {{ kind }} {{ id }}"
+dir = "{{ directory }}/{{ id }}"
+run = "cargo fmt --all -- --check"
+
+[tasks."{{ kind }}:{{ id }}:lint"]
+description = "Lint {{ kind }} {{ id }}"
+dir = "{{ directory }}/{{ id }}"
+run = "cargo clippy --locked --target wasm32-wasip3 -- -D warnings"
+
+[tasks."{{ kind }}:{{ id }}:test"]
+description = "Run native tests for {{ kind }} {{ id }}"
+dir = "{{ directory }}/{{ id }}"
+run = "cargo test --locked --lib"
+
+[tasks."{{ kind }}:{{ id }}:build"]
+description = "Build the package-ready component for {{ kind }} {{ id }}"
+dir = "{{ directory }}/{{ id }}"
+run = '''
+set -eu
+cargo build --locked --release --target wasm32-wasip3
+metadata="$(cargo metadata --locked --no-deps --format-version 1)"
+crate="$(printf '%s' "$metadata" | jq -er '.packages[] | select(.manifest_path == (env.PWD + "/Cargo.toml")) | .targets[] | select(.kind | index("cdylib")) | .name')"
+target="$(printf '%s' "$metadata" | jq -er '.target_directory')"
+cp "$target/wasm32-wasip3/release/$crate.wasm" {{ artifact }}.wasm
+'''
+{% endfor %}{% endfor %}{% for id in integrations %}{% for operation, command in [("format:check", "bun run format:check"), ("lint", "bun run lint"), ("test", "bun test --timeout 60000"), ("build", "bun run build")] %}
+[tasks."integration:{{ id }}:{{ operation }}"]
+description = "Run {{ operation }} for integration {{ id }}"
+dir = "integrations/{{ id }}"
+run = "{{ command }}"
+{% endfor %}{% endfor %}

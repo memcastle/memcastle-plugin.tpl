@@ -47,8 +47,15 @@ The new project's [README](template/README.md.jinja) covers building and packagi
 
 After rendering, sources are in `sources/<id>/`, integrations in `integrations/<id>/`, embeddings in `embeddings/<id>/`,
 and `plugin.toml` describes them.
-An ID may appear in both lists without the modules sharing files or activation state.
+An ID may appear in multiple lists without the modules sharing files or activation state.
 Empty lists are valid.
+
+The generated root README lists selected modules with direct links to their READMEs.
+Root `mise.toml` exposes `build`, `test`, `lint`, and `format:check` for each module:
+use `mise tasks ls` to discover tasks and, for example, `mise run source:one:test` to run native tests.
+Namespaces are `source:<id>`, `integration:<id>`, and `embedding:<id>`, so IDs can overlap across types.
+Install module dependencies first; Rust build tasks also require `jq` and copy the Wasm component
+into its package-ready location.
 
 ## Template options
 
@@ -124,7 +131,7 @@ while retaining their implementations.
 
 To work on this template, keep the three child-template repositories checked out alongside it
 and put migrated development Core, Rust 1.100 with `wasm32-wasip3`, wasm-tools 1.263.0,
-Python 3.11+, Bun and `jq` on your `PATH`.
+Python 3.11+, Bun, mise and `jq` on your `PATH`.
 The Core binary must support the migrated source/embedding contracts as well as plugin packaging and lifecycle tests.
 
 Run the rendering and archive smoke tests with:

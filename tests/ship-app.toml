@@ -13,6 +13,7 @@ files = ["README.md", "CONTRIBUTING.md", "AGENTS.md", ".github/ship.yml", ".gith
 absent = ["scripts/prepare_release.py", "tests/test_release.py", ".github/workflows/plugin.yml", ".github/workflows/release.yml"]
 
 [expect.contains]
+"mise.toml" = ['git-cliff = "2.12.0"']
 ".github/workflows/ship.yml" = ["actions/create-github-app-token@v3", "steps.app-token.outputs.token"]
 ".github/workflows/prepare-release.yml" = ["dry_run:", "ship-release"]
 ".github/workflows/publish-release.yml" = ["version: development", "actions/create-github-app-token@v3", "client-id: ${{ vars.APP_CLIENT_ID }}", "private-key: ${{ secrets.APP_PRIVATE_KEY }}", "GH_TOKEN: ${{ steps.app-token.outputs.token }}", "dist/${plugin_id}-${TAG}.tar.gz"]
@@ -27,4 +28,4 @@ absent = ["scripts/prepare_release.py", "tests/test_release.py", ".github/workfl
 ".github/codecov.yml" = ["target: auto", "flags:", "component_management:"]
 
 [commands]
-rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_ship.sh example"]
+rendered = ["python3 {{ env.TEMPLATE_ROOT }}/tests/scripts/check_discovery.py", "bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_ship.sh example"]

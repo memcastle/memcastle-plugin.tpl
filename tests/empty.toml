@@ -9,11 +9,12 @@ files = ["plugin.toml", "README.md", "CONTRIBUTING.md", "AGENTS.md", ".github/wo
 absent = ["manifest.toml", "sources/one/memcastle-source.toml", "integrations/one/memcastle-integration.toml", ".github/workflows/coverage.yml", "scripts/package.py", "scripts/check_modules.py", "scripts/smoke_install.py", "tests/test_manifest.py", ".github/codecov.yml"]
 
 [commands]
-rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh empty"]
+rendered = ["python3 {{ env.TEMPLATE_ROOT }}/tests/scripts/check_discovery.py", "bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh empty"]
 
 [expect.lacks]
+"mise.toml" = ["[tasks.", "git-cliff"]
 "plugin.toml" = ["version =", "sha256 =", "manifest_sha256 ="]
-"README.md" = ["memcastle plugin install empty", "Rust 1.100", "wasm32-wasip3"]
+"README.md" = ["memcastle plugin install empty", "Rust 1.100", "wasm32-wasip3", "## Modules", "### Root module tasks"]
 ".github/workflows/ci.yaml" = ["dtolnay/rust-toolchain", "wasm32-wasip3"]
 ".github/workflows/release.yml" = ["id-token: write"]
 
