@@ -50,7 +50,8 @@ and `plugin.toml` describes them.
 An ID may appear in multiple lists without the modules sharing files or activation state.
 Empty lists are valid.
 
-The generated root README lists selected modules with direct links to their READMEs.
+The generated root README lists selected modules with links to their directories,
+where GitHub displays each module's README alongside its files.
 Root `mise.toml` exposes `build`, `test`, `lint`, and `format:check` for each module:
 use `mise tasks ls` to discover tasks and, for example, `mise run source:one:test` to run native tests.
 Namespaces are `source:<id>`, `integration:<id>`, and `embedding:<id>`, so IDs can overlap across types.

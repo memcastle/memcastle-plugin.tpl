@@ -20,7 +20,7 @@ This is a versioned MemCastle provider plugin.
 
 {% for title, ids, directory in [("Sources", sources, "sources"), ("Integrations", integrations, "integrations"), ("Embedding providers", embeddings, "embeddings")] %}{% if ids %}### {{ title }}
 
-{% for id in ids %}- [{{ id }}]({{ directory }}/{{ id }}/README.md)
+{% for id in ids %}- [{{ id }}]({{ directory }}/{{ id }}/)
 {% endfor %}
 {% endif %}{% endfor %}{% endif %}## Install
 

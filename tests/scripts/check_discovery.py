@@ -19,9 +19,9 @@ namespaces = {"source": "source", "integration": "integration", "embedding_provi
 expected = {}
 for module in modules:
     directory = Path(module["manifest"]).parent
-    link = directory / "README.md"
-    assert f'[{module["id"]}]({link.as_posix()})' in readme, link
-    assert (root / link).is_file(), link
+    assert f'[{module["id"]}]({directory.as_posix()}/)' in readme, directory
+    assert (root / directory).is_dir(), directory
+    assert (root / directory / "README.md").is_file(), directory
     prefix = f'{namespaces[module["type"]]}:{module["id"]}'
     for operation in operations:
         expected[f"{prefix}:{operation}"] = root / directory

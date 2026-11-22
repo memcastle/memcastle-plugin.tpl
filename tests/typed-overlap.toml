@@ -14,7 +14,7 @@ files = ["plugin.toml", "sources/pi/memcastle-source.toml", "integrations/pi/mem
 absent = ["manifest.toml", "modules/pi/memcastle-source.toml", "integrations/pi/scripts/check_format.py", ".github/workflows/plugin.yml"]
 
 [expect.contains]
-"README.md" = ["[pi](sources/pi/README.md)", "[pi](integrations/pi/README.md)", "[pi](embeddings/pi/README.md)"]
+"README.md" = ["[pi](sources/pi/)", "[pi](integrations/pi/)", "[pi](embeddings/pi/)"]
 "mise.toml" = ['[tasks."source:pi:test"]', '[tasks."integration:pi:test"]', '[tasks."embedding:pi:test"]']
 "plugin.toml" = ['type = "source"', 'type = "integration"']
 ".github/workflows/ci.yaml" = ['source: ["pi"]', 'integration: ["pi"]', 'name: source-pi', 'name: integration-pi']

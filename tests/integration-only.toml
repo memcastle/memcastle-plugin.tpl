@@ -15,7 +15,7 @@ absent = ["manifest.toml", "sources/opencode/memcastle-source.toml", "integratio
 "mise.toml" = ['[tasks."integration:opencode:test"]', 'dir = "integrations/opencode"']
 ".github/workflows/ci.yaml" = ["bun test --timeout 60000 --coverage", "report_type: test_results", "integration-", "version: development"]
 ".github/codecov.yml" = ['target: "80%"', 'integration-opencode:', 'paths: ["integrations/opencode/src/**"]', 'target: "77%"', 'carryforward: false']
-"README.md" = ["It includes agent integrations", "bun test --timeout 60000", "## Install", "[opencode](integrations/opencode/README.md)", "mise run integration:opencode:test"]
+"README.md" = ["It includes agent integrations", "bun test --timeout 60000", "## Install", "[opencode](integrations/opencode/)", "mise run integration:opencode:test"]
 "AGENTS.md" = ["This render has no source modules", "Agent integration implementations live under `integrations/<id>/`"]
 
 [expect.lacks]
