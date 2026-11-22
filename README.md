@@ -14,7 +14,12 @@ into one independently versioned plugin.
 Install [git-tpl](https://noirbizarre.github.io/git-tpl/getting-started/installation/) 0.14.3 or newer and Git.
 
 Building a generated provider also requires a plugin-capable MemCastle Core binary and the toolchains
-for its selected modules (Rust/`wasm32-wasip2` for sources and embeddings; Bun for integrations).
+for its selected modules (Rust 1.100+/`wasm32-wasip3` for sources and embeddings; Bun for integrations).
+WASI modules require wasm-tools 1.263.0, Python 3.11+, and migrated development Core from commit `828f0f6`
+or a descendant, using its Wasmtime 50.0.3 runtime.
+Stable Core 0.5.2 predates the migration even though development currently reports the same version.
+The `>=0.5, <0.6` default is transitional and cannot distinguish those binaries;
+tighten it when the first compatible stable Core release is available.
 
 ## Get started
 
@@ -66,7 +71,7 @@ Omitted answers use the defaults below. `plugin_id` is the only required answer.
 | `source_template` | [memcastle-source.tpl] | Source child-template location; `main` is resolved when rendered. |
 | `integration_template` | [memcastle-integration.tpl] | Integration child-template location; `main` is resolved when rendered. |
 | `embedding_template` | [memcastle-embedding-provider.tpl] | Embedding child-template location; `main` is resolved when rendered. |
-| `core_versions` | `["development", "0.5"]` | Core validation matrix; `0.5` selects the latest stable patch. |
+| `core_versions` | `["development"]` with WASI modules; otherwise `["development", "0.5"]` | Validate migrated development Core for WASI modules until a compatible stable release exists. |
 | `codecov` | `false` | Enable Codecov coverage and test-result uploads. |
 | `codecov_project_target` | `80%` | Overall coverage floor when `codecov` is enabled. |
 | `codecov_patch_target` | `80%` | Changed-code coverage floor when `codecov` is enabled. |
@@ -98,6 +103,8 @@ git-tpl records the exact resolved commits of the parent and child templates in 
 Updates are explicit for existing plugins: new child `main` commits affect fresh renderings but never silently change
 an existing plugin until its owner reviews and merges the updated recorded revisions.
 The parent template CI checks each child's current `main` alongside its own rendering cases.
+The source 0.5.0 and embedding 0.2.0 child migrations must land before this parent migration;
+verify the generated project's recorded child revisions when accepting the update.
 
 In a generated repository:
 
@@ -116,17 +123,21 @@ while retaining their implementations.
 ## Development
 
 To work on this template, keep the three child-template repositories checked out alongside it
-and put a plugin-capable MemCastle Core binary (`memcastle plugin package` and `memcastle plugin test`),
-Rust with `wasm32-wasip2`, Bun and `jq` on your `PATH`.
+and put migrated development Core, Rust 1.100 with `wasm32-wasip3`, wasm-tools 1.263.0,
+Python 3.11+, Bun and `jq` on your `PATH`.
+The Core binary must support the migrated source/embedding contracts as well as plugin packaging and lifecycle tests.
 
 Run the rendering and archive smoke tests with:
 
 ```sh
-git tpl test --json
+TEMPLATE_ROOT="$PWD" git tpl test --json
 ```
 
 Check `summary.failed` in the JSON output (success is `0`).
 The fixtures cover empty and mixed projects, typed modules, conditional CI, packaging and both release modes.
+They validate actual WASI 0.3 imports and current MemCastle exports, run source conformance,
+and execute embedding probes against the packaged component in an isolated daemon.
+CI records the tested development Core SHA.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the template development workflow
 and [AGENTS.md](AGENTS.md) for coding-agent guidance.

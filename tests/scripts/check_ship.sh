@@ -25,7 +25,7 @@ git tag "0.1.1"
 
 test "$(git cliff --bumped-version)" = "0.1.1"
 # Core tests tag inference separately; this fixture checks the release tag and archive format.
-archive="$(memcastle plugin package --version 0.1.1 --json | jq -r .archive)"
+archive="$("${MEMCASTLE_BIN:-memcastle}" plugin package --version 0.1.1 --json | jq -r .archive)"
 test "$archive" = "dist/$plugin-0.1.1.tar.gz"
 test ! -e manifest.toml
 tar -xOzf "$archive" manifest.toml | grep -q '^version = "0.1.1"$'

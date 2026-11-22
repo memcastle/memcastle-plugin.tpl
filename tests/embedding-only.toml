@@ -8,8 +8,8 @@ files = ["plugin.toml", "embeddings/vector-one/Cargo.toml", "embeddings/vector-o
 absent = ["sources/vector-one/memcastle-source.toml", "integrations/vector-one/memcastle-integration.toml"]
 
 [expect.contains]
-"plugin.toml" = ['type = "embedding_provider"', 'manifest = "embeddings/vector-one/memcastle-embedding.toml"', 'contract = "0.1.0"']
-".github/workflows/ci.yaml" = ["name: embedding-vector-one", "path: embeddings/vector-one/", "cargo build --manifest-path"]
+"plugin.toml" = ['type = "embedding_provider"', 'manifest = "embeddings/vector-one/memcastle-embedding.toml"', 'contract = "0.2.0"']
+".github/workflows/ci.yaml" = ["name: embedding-vector-one", "path: embeddings/vector-one/", "cargo build --manifest-path", "wasm32-wasip3", 'core: ["development"]', 'python3 embeddings/vector-one/tests/conformance.py --archive "$ARCHIVE" --plugin-id vector --module-id vector-one']
 
 [commands]
 rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh vector"]

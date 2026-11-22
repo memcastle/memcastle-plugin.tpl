@@ -11,6 +11,8 @@
   and `template/CONTRIBUTING.md.jinja`.
   Update both READMEs and affected `tests/*.toml` expectations when changing user-facing behavior.
 - Run `git tpl test --json` and check `summary.failed == 0`.
-  Its package fixtures require sibling child checkouts, a plugin-capable `memcastle`,
-  Rust/`wasm32-wasip2`, Bun and `jq`; release fixtures also need git-cliff.
+  Set `TEMPLATE_ROOT="$PWD"` when invoking the suite.
+  Its package fixtures require all three sibling child checkouts and migrated development Core (`828f0f6` or later),
+  Rust 1.100/`wasm32-wasip3`, wasm-tools 1.263.0, Python 3.11+, Bun and `jq`; release fixtures also need git-cliff.
+  Source 0.5.0 and embedding 0.2.0 child changes must land before the parent; preserve exact resolved rendering locks.
   Review empty, mixed, registry, Codecov and both release-mode renders after editing conditional documentation.

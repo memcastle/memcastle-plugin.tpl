@@ -34,21 +34,25 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: {% raw %}${{ inputs.tag || github.sha }}{% endraw %}
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.100.0
         with:
-          targets: wasm32-wasip2
+          targets: wasm32-wasip3
+          components: rustfmt, clippy{% if codecov %}, llvm-tools-preview{% endif %}
+
 {% if codecov %}
-          components: llvm-tools-preview
       - uses: taiki-e/install-action@cargo-llvm-cov
       - uses: taiki-e/install-action@nextest
 {% endif %}
       - uses: Swatinem/rust-cache@v2
+      - uses: jdx/mise-action@v5
+        with:
+          install: false
       - name: Check source formatting and warnings
         env:
           MODULE: {% raw %}${{ matrix.source }}{% endraw %}
         run: |
           cargo fmt --manifest-path "sources/$MODULE/Cargo.toml" --all -- --check
-          cargo clippy --manifest-path "sources/$MODULE/Cargo.toml" --locked --target wasm32-wasip2 -- -D warnings
+          cargo clippy --manifest-path "sources/$MODULE/Cargo.toml" --locked --target wasm32-wasip3 -- -D warnings
 {% if codecov %}
       - name: Run source tests with coverage and JUnit
         id: source-tests
@@ -95,9 +99,10 @@ jobs:
           export CARGO_BUILD_RUSTC_WRAPPER=
           unset RUSTFLAGS
           export CARGO_ENCODED_RUSTFLAGS="--remap-path-prefix=$cargo_home=/cargo"$'\x1f'"--remap-path-prefix=$sysroot/lib/rustlib/src/rust=/rustc/$commit"$'\x1f'"--remap-path-prefix=$module_dir=/module"
-          cargo build --manifest-path "$module_dir/Cargo.toml" --locked --release --target wasm32-wasip2
+          cargo build --manifest-path "$module_dir/Cargo.toml" --locked --release --target wasm32-wasip3
           crate="$(cargo metadata --no-deps --format-version 1 --manifest-path "$module_dir/Cargo.toml" | jq -er '.packages[0].targets[] | select(.kind | index("cdylib")) | .name')"
-          cp "$module_dir/target/wasm32-wasip2/release/$crate.wasm" "$module_dir/source.wasm"
+          cp "$module_dir/target/wasm32-wasip3/release/$crate.wasm" "$module_dir/source.wasm"
+          mise exec cargo:wasm-tools@1.263.0 -- python3 scripts/validate_component.py source "$module_dir/source.wasm"
           mkdir -p "$module_dir/dist"
           cp "$module_dir/source.wasm" "$module_dir/dist/source.wasm"
       - uses: actions/upload-artifact@v7
@@ -198,10 +203,14 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: {% raw %}${{ inputs.tag || github.sha }}{% endraw %}
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.100.0
         with:
-          targets: wasm32-wasip2
+          targets: wasm32-wasip3
+          components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
+      - uses: jdx/mise-action@v5
+        with:
+          install: false
       - name: Test and build embedding component
         env:
           MODULE: {% raw %}${{ matrix.embedding }}{% endraw %}
@@ -210,10 +219,11 @@ jobs:
           module_dir="$PWD/embeddings/$MODULE"
           cargo fmt --manifest-path "$module_dir/Cargo.toml" --all -- --check
           cargo test --manifest-path "$module_dir/Cargo.toml" --locked --lib
-          cargo clippy --manifest-path "$module_dir/Cargo.toml" --locked --target wasm32-wasip2 -- -D warnings
-          cargo build --manifest-path "$module_dir/Cargo.toml" --locked --release --target wasm32-wasip2
+          cargo clippy --manifest-path "$module_dir/Cargo.toml" --locked --target wasm32-wasip3 -- -D warnings
+          cargo build --manifest-path "$module_dir/Cargo.toml" --locked --release --target wasm32-wasip3
           crate="$(cargo metadata --no-deps --format-version 1 --manifest-path "$module_dir/Cargo.toml" | jq -er '.packages[0].targets[] | select(.kind | index("cdylib")) | .name')"
-          cp "$module_dir/target/wasm32-wasip2/release/$crate.wasm" "$module_dir/embedding.wasm"
+          cp "$module_dir/target/wasm32-wasip3/release/$crate.wasm" "$module_dir/embedding.wasm"
+          mise exec cargo:wasm-tools@1.263.0 -- python3 scripts/validate_component.py embedding "$module_dir/embedding.wasm"
       - uses: actions/upload-artifact@v7
         with:
           name: embedding-{% raw %}${{ matrix.embedding }}{% endraw %}
@@ -280,3 +290,9 @@ jobs:
       artifact-name: plugin-package
       core-version: {% raw %}${{ matrix.core }}{% endraw %}
       plugin-ref: {% raw %}${{ inputs.tag }}{% endraw %}
+{% if embeddings %}
+      smoke-command: |
+{% for id in embeddings %}
+        python3 embeddings/{{ id }}/tests/conformance.py --archive "$ARCHIVE" --plugin-id {{ plugin_id }} --module-id {{ id }}
+{% endfor %}
+{% endif %}

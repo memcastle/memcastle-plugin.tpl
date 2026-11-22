@@ -1,25 +1,28 @@
 [answers]
 plugin_id = "sample"
-sources = ["directory"]
+sources = ["text-files"]
 integrations = []
 codecov = true
 codecov_project_target = "73%"
 codecov_patch_target = "70%"
 codecov_source_target = "66%"
-codecov_covered_sources = ["directory"]
+codecov_covered_sources = ["text-files"]
 source_template = "../memcastle-source.tpl"
 
 [expect]
-files = ["README.md", "CONTRIBUTING.md", "AGENTS.md", ".github/workflows/ci.yaml", "sources/directory/Cargo.toml", "sources/directory/memcastle-source.toml", ".github/codecov.yml"]
-absent = ["manifest.toml", "integrations/directory/memcastle-integration.toml", "scripts/package.py", "scripts/coverage.py", "tests/test_manifest.py", ".github/workflows/plugin.yml"]
+files = ["README.md", "CONTRIBUTING.md", "AGENTS.md", ".github/workflows/ci.yaml", "sources/text-files/Cargo.toml", "sources/text-files/memcastle-source.toml", ".github/codecov.yml"]
+absent = ["manifest.toml", "integrations/text-files/memcastle-integration.toml", "scripts/package.py", "scripts/coverage.py", "tests/test_manifest.py", ".github/workflows/plugin.yml"]
 
 [expect.contains]
-".github/workflows/ci.yaml" = ["cargo llvm-cov nextest", "report_type: test_results", "memcastle plugin package", 'core: ["development", "0.5"]', "version: development"]
-"plugin.toml" = ['memcastle = ">=0.5, <0.6"', 'contract = "0.4.0"']
-".github/codecov.yml" = ['target: "73%"', 'target: "70%"', 'source-directory:', 'paths: ["sources/directory/src/**"]', 'target: "66%"', 'carryforward: false']
-"README.md" = ["It includes source modules", "cargo build --manifest-path sources/<id>/Cargo.toml", "Project and patch targets are `73%` and `70%`", "`development` and `0.5`"]
+".github/workflows/ci.yaml" = ["cargo llvm-cov nextest", "report_type: test_results", "memcastle plugin package", 'core: ["development"]', "version: development", "dtolnay/rust-toolchain@1.100.0", "wasm32-wasip3", "scripts/validate_component.py source"]
+"plugin.toml" = ['memcastle = ">=0.5, <0.6"', 'contract = "0.5.0"']
+".github/codecov.yml" = ['target: "73%"', 'target: "70%"', 'source-text-files:', 'paths: ["sources/text-files/src/**"]', 'target: "66%"', 'carryforward: false']
+"README.md" = ["It includes source modules", "cargo build --manifest-path sources/<id>/Cargo.toml", "Project and patch targets are `73%` and `70%`", "defaults to `development` until a compatible stable release exists"]
 "AGENTS.md" = ["Source implementations and tests live under `sources/<id>/`", "This render has no agent integrations"]
 
 [expect.lacks]
-".github/codecov.yml" = ["target: auto", "integration-directory:", "informational: true"]
+".github/codecov.yml" = ["target: auto", "integration-text-files:", "informational: true"]
 "README.md" = ["It includes agent integrations", "For each integration with a `package.json`"]
+
+[commands]
+rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh sample"]
