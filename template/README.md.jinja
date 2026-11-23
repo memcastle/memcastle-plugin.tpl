@@ -16,7 +16,13 @@ This is a versioned MemCastle provider plugin.
 {% elif integrations %}It includes agent integrations.
 {% elif not embeddings %}Add a source, integration or embedding-provider module when you're ready to provide one.
 {% endif %}
-## Install
+{% if sources or integrations or embeddings %}## Modules
+
+{% for title, ids, directory in [("Sources", sources, "sources"), ("Integrations", integrations, "integrations"), ("Embedding providers", embeddings, "embeddings")] %}{% if ids %}### {{ title }}
+
+{% for id in ids %}- [{{ id }}]({{ directory }}/{{ id }}/)
+{% endfor %}
+{% endif %}{% endfor %}{% endif %}## Install
 
 {% if registry %}If this plugin has a published release in the
 [MemCastle plugin catalogue](https://memcastle.github.io/plugins.json),
@@ -63,7 +69,31 @@ WASI 0.3 support is experimental and does not enable `std::thread::spawn`.
 An external WASI SDK is only needed for builds that explicitly depend on it.
 {% endif %}{% if integrations %}Install Bun for agent integrations.
 {% endif %}
-{% if sources %}For each source, run its tests, build the Wasm component and copy the compiled component
+{% if sources or integrations or embeddings %}### Root module tasks
+
+With [mise](https://mise.jdx.dev/) installed, discover module tasks from the project root:
+
+```sh
+mise tasks ls
+{% if sources %}mise run source:{{ sources[0] }}:test
+{% endif %}{% if integrations %}mise run integration:{{ integrations[0] }}:test
+{% endif %}{% if embeddings %}mise run embedding:{{ embeddings[0] }}:test
+{% endif %}```
+
+Every module exposes `build`, `test`, `lint`, and `format:check` under its typed namespace
+(`source:<id>:<operation>`, `integration:<id>:<operation>`, or `embedding:<id>:<operation>`).
+Tasks run in the module's directory, including when invoked from a project subdirectory.
+Follow the linked module README for setup before running checks.
+{% if sources or embeddings %}Generate and commit each Rust module's `Cargo.lock` first, as shown below.
+Rust `test` tasks run native unit tests; `build` tasks require `jq` and copy the release component
+to the module's `source.wasm` or `embedding.wasm`, ready for packaging.
+{% endif %}{% if integrations %}Run `bun install` in each integration directory before running its tasks.
+{% endif %}
+Host conformance and archive checks are described below.
+
+### Module commands and packaging
+
+{% endif %}{% if sources %}For each source, run its tests, build the Wasm component and copy the compiled component
 to `sources/<id>/source.wasm`.
 See the module's README and the CI workflow for its crate-specific artifact name:
 
@@ -131,6 +161,7 @@ Outside a Git checkout, pass `--version` when packaging.
 | Path | Purpose |
 | --- | --- |
 | `plugin.toml` | Plugin identity, supported Core versions and module entries. |
+| `mise.toml` | Root task configuration{% if gh_ship %} and release tooling{% endif %}. |
 {% if sources %}| `sources/<id>/` | Rust/Wasm source modules, each with its own manifest and tests. |
 {% endif %}{% if integrations %}| `integrations/<id>/` | Agent integrations and their own assets or builds. |
 {% endif %}{% if embeddings %}| `embeddings/<id>/` | Rust/Wasm embedding providers and model manifests. |

@@ -2,19 +2,23 @@
 plugin_id = "pi"
 sources = ["pi"]
 integrations = ["pi"]
+embeddings = ["pi"]
 codecov = true
 codecov_covered_sources = ["pi"]
 source_template = "../memcastle-source.tpl"
 integration_template = "../memcastle-integration.tpl"
+embedding_template = "../memcastle-embedding-provider.tpl"
 
 [expect]
 files = ["plugin.toml", "sources/pi/memcastle-source.toml", "integrations/pi/memcastle-integration.toml", "sources/pi/README.md", "integrations/pi/README.md", "integrations/pi/dist/index.js", ".github/workflows/ci.yaml"]
 absent = ["manifest.toml", "modules/pi/memcastle-source.toml", "integrations/pi/scripts/check_format.py", ".github/workflows/plugin.yml"]
 
 [expect.contains]
+"README.md" = ["[pi](sources/pi/)", "[pi](integrations/pi/)", "[pi](embeddings/pi/)"]
+"mise.toml" = ['[tasks."source:pi:test"]', '[tasks."integration:pi:test"]', '[tasks."embedding:pi:test"]']
 "plugin.toml" = ['type = "source"', 'type = "integration"']
 ".github/workflows/ci.yaml" = ['source: ["pi"]', 'integration: ["pi"]', 'name: source-pi', 'name: integration-pi']
 ".github/codecov.yml" = ["source-pi:", "integration-pi:", 'target: "80%"', "informational: true", "carryforward: false"]
 
 [commands]
-rendered = ["bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh pi"]
+rendered = ["python3 {{ env.TEMPLATE_ROOT }}/tests/scripts/check_discovery.py", "bash {{ env.TEMPLATE_ROOT }}/tests/scripts/check_package.sh pi"]

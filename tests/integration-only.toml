@@ -12,13 +12,18 @@ files = ["plugin.toml", "README.md", "CONTRIBUTING.md", "AGENTS.md", "integratio
 absent = ["manifest.toml", "sources/opencode/memcastle-source.toml", "integrations/opencode/scripts/check_format.py", ".github/workflows/plugin.yml", "scripts/package.py", "scripts/check_modules.py"]
 
 [expect.contains]
+"mise.toml" = ['[tasks."integration:opencode:test"]', 'dir = "integrations/opencode"']
 ".github/workflows/ci.yaml" = ["bun test --timeout 60000 --coverage", "report_type: test_results", "integration-", "version: development"]
 ".github/codecov.yml" = ['target: "80%"', 'integration-opencode:', 'paths: ["integrations/opencode/src/**"]', 'target: "77%"', 'carryforward: false']
-"README.md" = ["It includes agent integrations", "bun test --timeout 60000", "## Install"]
+"README.md" = ["It includes agent integrations", "bun test --timeout 60000", "## Install", "[opencode](integrations/opencode/)", "mise run integration:opencode:test"]
 "AGENTS.md" = ["This render has no source modules", "Agent integration implementations live under `integrations/<id>/`"]
 
 [expect.lacks]
+"mise.toml" = ["git-cliff", '[tasks."source:', '[tasks."embedding:']
 "plugin.toml" = ["version =", "sha256 ="]
 ".github/codecov.yml" = ["target: auto", "source-opencode:", "informational: true"]
 "README.md" = ["It includes source modules", "For each source, run its tests", "Rust 1.100", "wasm32-wasip3"]
 ".github/workflows/ci.yaml" = ["dtolnay/rust-toolchain", "wasm32-wasip3"]
+
+[commands]
+rendered = ["python3 {{ env.TEMPLATE_ROOT }}/tests/scripts/check_discovery.py --run"]
