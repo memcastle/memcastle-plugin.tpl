@@ -98,6 +98,9 @@ The plugin must also have a published release for installation by ID to work.
 Coverage targets are fixed percentages from 0% to 100%; the covered-ID lists
 are chosen from the corresponding module IDs.
 A plugin with `codecov = false` does not generate Codecov configuration.
+Source coverage jobs set `WIT_BINDGEN_DEBUG=1` so generated ABI code is emitted under the build directory
+and excluded by cargo-llvm-cov's normal generated-file filtering, rather than attributed to the provider's macro call.
+Provider logic retains the configured coverage gates; release component builds do not use this setting.
 
 The generated README explains repository setup for the selected release and coverage options.
 

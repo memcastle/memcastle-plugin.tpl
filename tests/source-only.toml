@@ -15,7 +15,7 @@ absent = ["manifest.toml", "integrations/text-files/memcastle-integration.toml",
 
 [expect.contains]
 "mise.toml" = ['[tasks."source:text-files:test"]', 'dir = "sources/text-files"']
-".github/workflows/ci.yaml" = ["cargo llvm-cov nextest", "report_type: test_results", "memcastle plugin package", 'core: ["development"]', "version: development", "dtolnay/rust-toolchain@1.100.0", "wasm32-wasip3", "scripts/validate_component.py source"]
+".github/workflows/ci.yaml" = ["cargo llvm-cov nextest", "WIT_BINDGEN_DEBUG: '1'", "report_type: test_results", "memcastle plugin package", 'core: ["development"]', "version: development", "dtolnay/rust-toolchain@1.100.0", "wasm32-wasip3", "scripts/validate_component.py source"]
 "plugin.toml" = ['memcastle = ">=0.5, <0.6"', 'contract = "0.5.0"']
 ".github/codecov.yml" = ['target: "73%"', 'target: "70%"', 'source-text-files:', 'paths: ["sources/text-files/src/**"]', 'target: "66%"', 'carryforward: false']
 "README.md" = ["It includes source modules", "cargo build --manifest-path sources/<id>/Cargo.toml", "Project and patch targets are `73%` and `70%`", "defaults to `development` until a compatible stable release exists", "[text-files](sources/text-files/)", "mise run source:text-files:test"]
